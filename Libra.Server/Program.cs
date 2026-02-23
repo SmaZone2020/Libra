@@ -3,20 +3,17 @@ using Libra.Server.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 
-// Add services to the container.
 builder.Services.AddProblemDetails();
 builder.Services.AddControllers(options =>
 {
-    // 注册全局异常过滤器
     options.Filters.Add<Libra.Server.Filters.GlobalExceptionFilter>();
-    // 注册模型绑定异常过滤器
     options.Filters.Add<Libra.Server.Filters.ModelBindingExceptionFilter>();
 });
 
-// 配置API行为选项，自定义模型绑定错误处理
+builder.Services.AddCors(options => options.AddPolicy("AllowAll", p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+
 builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
@@ -33,29 +30,34 @@ builder.Services.Configure<Microsoft.AspNetCore.Mvc.ApiBehaviorOptions>(options 
     };
 });
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-// Initialize TOTP config (check and generate secret key if not exists)
 Libra.Server.Service.TotpConfigManager.Initialize();
+
+var tcpServer = new Libra.Server.Service.TcpServer();
+tcpServer.Start();
+Console.WriteLine("TCP Server started on port 8888");
+
+AppDomain.CurrentDomain.ProcessExit += (sender, e) =>
+{
+    tcpServer.Stop();
+    Console.WriteLine("TCP Server stopped");
+};
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 app.UseErrorHandling();
 
-// 自定义BadRequest处理程序，处理模型绑定错误
+app.UseCors("AllowAll");
+
 app.Use(async (context, next) =>
 {
     await next();
 
-    // 检查是否是400错误
     if (context.Response.StatusCode == StatusCodes.Status400BadRequest)
     {
-        // 检查是否已经是我们自定义的响应格式
         if (!context.Response.ContentType?.Contains("application/json") ?? true)
         {
-            // 重置响应
             context.Response.Clear();
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
             context.Response.ContentType = "application/json";

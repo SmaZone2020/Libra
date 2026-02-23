@@ -1,4 +1,4 @@
-﻿using Libra.Server.Enum;
+using Libra.Server.Enum;
 
 namespace Libra.Server.Models.API
 {

@@ -5,7 +5,7 @@ using Libra.Server.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Libra.Server.Controllers
+namespace Libra.Server.Controllers.v1
 {
     [Route("api/v1")]
     [ApiController]

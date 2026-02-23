@@ -11,7 +11,7 @@ namespace Libra.Server.Service
         private const int AllowedTimeDrift = 1;
 
         /// <summary>
-        /// 生成新的 2FA 密钥（Base32 编码）
+        /// 生成新的 2FA 密钥
         /// </summary>
         public static string GenerateSecretKey()
         {
@@ -62,19 +62,18 @@ namespace Libra.Server.Service
         }
 
         /// <summary>
-        /// 【调试用】获取当前应生成的验证码 ✅ 已修复
+        /// 【调试用】获取当前应生成的验证码
         /// </summary>
         public static string GetCurrentCodeForTesting(string secretKey)
         {
             var keyBytes = Base32Encoding.ToBytes(secretKey);
             var totp = new Totp(keyBytes, TimeStepSeconds, OtpHashMode.Sha1, CodeDigits);
 
-            // ✅ ComputeTotp 不接受参数，使用系统当前时间
             return totp.ComputeTotp();
         }
 
         /// <summary>
-        /// 【高级】带自定义时间的验证码生成（仅测试用）
+        /// 带自定义时间的验证码生成（测试用）
         /// </summary>
         public static string GetCurrentCodeAtTime(string secretKey, DateTimeOffset customTime)
         {

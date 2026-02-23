@@ -7,11 +7,13 @@ function Main() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // 清除登录信息
+    // 从localStorage删除所有相关数据
     localStorage.removeItem('baseUrl');
-    localStorage.removeItem('token');
+    localStorage.removeItem('user-info');
     localStorage.removeItem('isLoggedIn');
-    // 跳转到登录页面
+    // 同时从cookie删除作为备用
+    document.cookie = `baseUrl=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+    document.cookie = `user-info=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
     navigate('/login');
   };
 

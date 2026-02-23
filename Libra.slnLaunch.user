@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "新建配置文件",
+    "Projects": [
+      {
+        "Path": "Libra.AppHost\\Libra.AppHost.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "Libra.Agent\\Libra.Agent.csproj",
+        "Action": "Start",
+        "DebugTarget": "Libra.Agent"
+      }
+    ]
+  }
+]
