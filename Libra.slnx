@@ -3,6 +3,7 @@
     <Build />
     <Deploy />
   </Project>
+  <Project Path="Libra.Agent/Libra.Agent.csproj" />
   <Project Path="Libra.AppHost/Libra.AppHost.csproj" />
   <Project Path="Libra.Server/Libra.Server.csproj" />
 </Solution>
