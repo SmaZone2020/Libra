@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="frontend/frontend.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="Libra.AppHost/Libra.AppHost.csproj" />
+  <Project Path="Libra.Server/Libra.Server.csproj" />
+</Solution>
