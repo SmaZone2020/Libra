@@ -1,7 +1,7 @@
 using System.IO;
 using System.Text.Json;
 
-namespace Libra.Server.Service
+namespace Libra.Server.Service.Auth
 {
     public class TotpConfigManager
     {

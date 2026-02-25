@@ -31,4 +31,8 @@
   <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Libra.Virgo\Libra.Virgo.csproj" />
+  </ItemGroup>
 </Project>

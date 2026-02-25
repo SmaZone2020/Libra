@@ -12,69 +12,48 @@ function RequireAuth({ children }: RequireAuthProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isValid, setIsValid] = useState(false);
 
-  // 从cookie中获取值
-  const getCookieValue = (name: string): string | null => {
-    const cookieValue = document.cookie
-      .split('; ')
-      .find(row => row.startsWith(`${name}=`))
-      ?.split('=')[1];
-    return cookieValue ? decodeURIComponent(cookieValue) : null;
+  const getTokenFromLocalStorage = (): string | null => {
+    return localStorage.getItem('libra-token');
   };
 
-  // 删除cookie值
-  const removeCookieValue = (name: string): void => {
-    document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  const getBaseUrlFromLocalStorage = (): string | null => {
+    return localStorage.getItem('libra-base-url');
   };
 
-  // 从cookie中获取token
-  const getTokenFromCookie = (): string | null => {
-    return getCookieValue('token');
+  const removeTokenFromLocalStorage = (): void => {
+    localStorage.removeItem('libra-token');
   };
 
-  // 从cookie中获取baseUrl
-  const getBaseUrlFromCookie = (): string | null => {
-    return getCookieValue('baseUrl');
-  };
-
-  // 从cookie中删除token
-  const removeTokenFromCookie = (): void => {
-    removeCookieValue('token');
-  };
-
-  // 从cookie中删除baseUrl
-  const removeBaseUrlFromCookie = (): void => {
-    removeCookieValue('baseUrl');
+  const removeBaseUrlFromLocalStorage = (): void => {
+    localStorage.removeItem('libra-base-url');
   };
 
   useEffect(() => {
     const validateToken = async () => {
-      const savedBaseUrl = getBaseUrlFromCookie();
-      const savedToken = getTokenFromCookie();
-      
+      const savedBaseUrl = getBaseUrlFromLocalStorage();
+      const savedToken = getTokenFromLocalStorage();
+
       if (savedBaseUrl && savedToken) {
         try {
           const response = await authApi.validateToken(savedBaseUrl, savedToken);
           
-          if (response.code === 0 && response.data.valid) {
+          if (response.code === 200 && response.data.valid) {
             setIsValid(true);
           } else {
-            // Token无效，清除存储并跳转到登录页
-            removeBaseUrlFromCookie();
-            removeTokenFromCookie();
+            removeBaseUrlFromLocalStorage();
+            removeTokenFromLocalStorage();
             localStorage.removeItem('isLoggedIn');
             navigate('/login', { replace: true });
           }
         } catch (err) {
-          // 验证失败，清除存储并跳转到登录页
-          removeBaseUrlFromCookie();
-          removeTokenFromCookie();
+          removeBaseUrlFromLocalStorage();
+          removeTokenFromLocalStorage();
           localStorage.removeItem('isLoggedIn');
           navigate('/login', { replace: true });
         } finally {
           setIsLoading(false);
         }
       } else {
-        // 没有存储的token，跳转到登录页
         navigate('/login', { replace: true });
         setIsLoading(false);
       }
@@ -84,7 +63,6 @@ function RequireAuth({ children }: RequireAuthProps) {
   }, [navigate]);
 
   if (isLoading) {
-    // 加载中，可以添加一个加载指示器
     return null;
   }
 

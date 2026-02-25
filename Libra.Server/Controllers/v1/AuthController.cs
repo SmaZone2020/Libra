@@ -1,7 +1,7 @@
 ﻿using Libra.Server.Enum;
 using Libra.Server.Extensions;
 using Libra.Server.Models.API;
-using Libra.Server.Service;
+using Libra.Server.Service.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -30,7 +30,7 @@ namespace Libra.Server.Controllers.v1
             }
             else
             {
-                message = "Login Success";
+                message = "Ok";
             }
 
             return new()

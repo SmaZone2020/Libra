@@ -1,5 +1,6 @@
 // Libra Agent 启动程序
-using Libra.Agent.Service;
+using Libra.Agent;
+using Libra.Virgo.Enum;
 using System.Threading;
 
 Console.WriteLine("Libra Agent 启动中...");
@@ -7,23 +8,11 @@ Console.WriteLine("=====================");
 
 try
 {
-    // 生成唯一的 agent ID
-    string agentId = Guid.NewGuid().ToString();
     string serverIp = "127.0.0.1";
     int serverPort = 8888;
 
-    Console.WriteLine($"Agent ID: {agentId}");
+    Console.WriteLine($"Agent ID: {Runtimes.AgentId}");
     Console.WriteLine($"服务器 IP: {serverIp}:{serverPort}");
-    Console.WriteLine("使用标准 TCP 连接");
-
-    // 创建通信服务
-    var communicationService = new CommunicationService(agentId, serverIp, serverPort);
-
-    // 注册事件处理器
-    communicationService.Connected += (sender, e) => Console.WriteLine("已连接到服务器");
-    communicationService.Disconnected += (sender, e) => Console.WriteLine("已从服务器断开连接");
-    communicationService.Registered += (sender, e) => Console.WriteLine("注册成功");
-    communicationService.RegistrationFailed += (sender, e) => Console.WriteLine("注册失败");
 
     // 创建取消令牌
     using var cts = new CancellationTokenSource();
@@ -35,21 +24,37 @@ try
     };
 
     // 初始化连接
-    Console.WriteLine("正在初始化连接...");
+    Console.WriteLine("初始化Virgo连接...");
     try
     {
-        await communicationService.InitializeAsync(cts.Token);
-        Console.WriteLine("初始化成功");
+        await Runtimes.Initialize(serverIp, serverPort);
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"初始化失败: {ex.Message}");
+        Console.WriteLine($"连接失败: {ex.Message}");
         Console.WriteLine("将在主循环中尝试重新连接...");
     }
 
     // 启动主循环
     Console.WriteLine("正在启动主循环...");
-    await communicationService.StartLoopAsync(cts.Token);
+    var random = new Random();
+    while (!cts.Token.IsCancellationRequested)
+    {
+        try
+        {
+            // 发送心跳
+            await Runtimes.SendMessage(VirgoMessageType.Heartbeat, new { Status = "alive", Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds() });
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]已发送心跳");
+
+            await Task.Delay(30000, cts.Token);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"主循环出错: {ex.Message}");
+            // 异常退避策略
+            await Task.Delay(60000, cts.Token);
+        }
+    }
 }
 catch (Exception ex)
 {

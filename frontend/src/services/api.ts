@@ -4,7 +4,6 @@
 export interface ApiResponse<T> {
   code: number;
   message: string;
-  requestId: string;
   data: T;
   timestamp: number;
 }
@@ -77,9 +76,8 @@ export const authApi = {
   },
 };
 
-// Agent相关API
 export const agentApi = {
-  // 获取在线Agent列表
+  // 在线列表
   getOnlineAgents: async (baseUrl: string, token: string): Promise<ApiResponse<{ count: number; agents: any[] }>> => {
     return apiRequest<{ count: number; agents: any[] }>(
       baseUrl,
@@ -92,11 +90,25 @@ export const agentApi = {
     );
   },
 
-  // 获取Agent统计信息
-  getAgentStats: async (baseUrl: string, token: string): Promise<ApiResponse<{ onlineCount: number; totalCount: number; timestamp: number }>> => {
-    return apiRequest<{ onlineCount: number; totalCount: number; timestamp: number }>(
+  // 在线列表（带 type=1 参数）
+  getOnlineAgentsWithType: async (baseUrl: string, token: string): Promise<ApiResponse<{ count: number; agents: string[] }>> => {
+    return apiRequest<{ count: number; agents: string[] }>(
       baseUrl,
-      '/api/v1/agents/stats',
+      '/api/v1/agents/online?type=1',
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+
+  // 统计信息
+  getAgentStats: async (baseUrl: string, token: string): Promise<ApiResponse<{ onlineCount: number; idleCount: number; startTime: number; ping: number }>> => {
+    const t = Date.now();
+    return apiRequest<{ onlineCount: number; idleCount: number; startTime: number; ping: number }>(
+      baseUrl,
+      `/api/v1/agents/stats?t=${t}`,
       {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -106,8 +118,79 @@ export const agentApi = {
   },
 };
 
-// 导出默认API对象
+// 命令执行相关API
+export const commandApi = {
+  // 执行shell命令
+  runShellCommand: async (baseUrl: string, token: string, agentId: string, command: string): Promise<ApiResponse<{ result: string }>> => {
+    return apiRequest<{ result: string }>(
+      baseUrl,
+      `/api/v1/command/shell/${agentId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(command),
+      }
+    );
+  },
+};
+
+// 监控相关API
+export const monitorApi = {
+  // 获取屏幕帧
+  getScreenFrame: async (baseUrl: string, token: string, agentId: string): Promise<ApiResponse<string>> => {
+    return apiRequest<string>(
+      baseUrl,
+      `/api/v1/monitor/frame/${agentId}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+  },
+};
+
+// 文件资源管理器相关API
+export const explorerApi = {
+  // 获取文件列表
+  getFiles: async (baseUrl: string, token: string, agentId: string, path: string): Promise<ApiResponse<string>> => {
+    return apiRequest<string>(
+      baseUrl,
+      `/api/v1/explorer/getfiles/${agentId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(path),
+      }
+    );
+  },
+  
+  // 获取磁盘信息
+  getDisks: async (baseUrl: string, token: string, agentId: string): Promise<ApiResponse<string>> => {
+    return apiRequest<string>(
+      baseUrl,
+      `/api/v1/explorer/disks/${agentId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+  },
+};
+
 export default {
   auth: authApi,
   agent: agentApi,
+  command: commandApi,
+  monitor: monitorApi,
+  explorer: explorerApi,
 };

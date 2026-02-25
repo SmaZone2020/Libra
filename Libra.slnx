@@ -6,4 +6,5 @@
   <Project Path="Libra.Agent/Libra.Agent.csproj" />
   <Project Path="Libra.AppHost/Libra.AppHost.csproj" />
   <Project Path="Libra.Server/Libra.Server.csproj" />
+  <Project Path="Libra.Virgo/Libra.Virgo.csproj" Id="29e7cddd-ab69-4088-9aa2-45ad5311b526" />
 </Solution>

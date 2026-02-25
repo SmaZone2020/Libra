@@ -3,6 +3,11 @@ import { Button, Card, Input, Label, Form, Fieldset, ErrorMessage, InputOTP, Mod
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../services/api';
 
+// 定义存储键名常量，避免硬编码错误
+const STORAGE_KEYS = {
+  BASE_URL: 'libra-base-url'
+};
+
 function Login() {
   const [baseUrl, setBaseUrl] = useState('');
   const [token, setToken] = useState('');
@@ -13,70 +18,25 @@ function Login() {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const navigate = useNavigate();
 
-  // 从存储中获取token
-  const getTokenFromStorage = (): string | null => {
-    return localStorage.getItem('user-info');
-  };
-
-  // 将token存储到存储中
-  const setTokenToStorage = (token: string): void => {
-    localStorage.setItem('user-info', token);
-  };
-
-  // 从存储中删除token
-  const removeTokenFromStorage = (): void => {
-    localStorage.removeItem('user-info');
-  };
-
-  // 从存储中获取baseUrl
+  // ========== 存储操作函数 ==========
+  // 从localStorage获取baseUrl
   const getBaseUrlFromStorage = (): string | null => {
-    return localStorage.getItem('baseUrl');
+    return localStorage.getItem(STORAGE_KEYS.BASE_URL);
   };
 
-  // 将baseUrl存储到存储中
+  // 将baseUrl存储到localStorage
   const setBaseUrlToStorage = (baseUrl: string): void => {
-    localStorage.setItem('baseUrl', baseUrl);
+    localStorage.setItem(STORAGE_KEYS.BASE_URL, baseUrl);
   };
 
-  // 从存储中删除baseUrl
-  const removeBaseUrlFromStorage = (): void => {
-    localStorage.removeItem('baseUrl');
-  };
-
+  // ========== 初始化逻辑 ==========
   useEffect(() => {
-    const validateToken = async () => {
-      const savedBaseUrl = getBaseUrlFromStorage();
-      const savedToken = getTokenFromStorage();
-      console.log('Stored values:', savedBaseUrl, savedToken);
-      
-      // 如果都为空则保持在Login页面
-      if (!savedBaseUrl || !savedToken) {
-        return;
-      }
-      
-      // 若不为空则先尝试通过baseUrl请求status接口，检验token是否有效
-      try {
-        const response = await authApi.validateToken(savedBaseUrl, savedToken);
-        
-        if (response.code === 200 && response.data.valid) {
-          navigate('/main');
-        } else {
-          // 无效则保持在Login页面
-          removeBaseUrlFromStorage();
-          removeTokenFromStorage();
-          localStorage.removeItem('isLoggedIn');
-        }
-      } catch (err) {
-        // 错误则保持在Login页面
-        removeBaseUrlFromStorage();
-        removeTokenFromStorage();
-        localStorage.removeItem('isLoggedIn');
-      }
-    };
+    // 只从存储加载baseUrl到页面状态
+    const savedBaseUrl = getBaseUrlFromStorage();
+    if (savedBaseUrl) setBaseUrl(savedBaseUrl); // 回显BaseURL
+  }, []);
 
-    validateToken();
-  }, [navigate]);
-
+  // ========== 测试连接逻辑（优化错误处理） ==========
   const testConnectivity = async () => {
     setError('');
     setIsLoading(true);
@@ -85,11 +45,17 @@ function Login() {
       if (!baseUrl) {
         throw new Error('请输入BaseURL');
       }
+      // 校验BaseURL格式
+      if (!/^https?:\/\/.+/.test(baseUrl)) {
+        throw new Error('BaseURL格式错误，请以http/https开头');
+      }
+      
       const response = await authApi.ping(baseUrl);
       
       if (response.code !== 200) {
         throw new Error(response.message || '连接失败，请重试');
       }
+      
       setBaseUrlToStorage(baseUrl);
       if (response.data) {
         setQrCodeUrl(response.data);
@@ -98,7 +64,9 @@ function Login() {
         setShowTotp(true);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '连接失败，请重试');
+      const errorMsg = err instanceof Error ? err.message : '连接失败，请重试';
+      setError(errorMsg);
+      console.error('测试连接失败:', errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -111,7 +79,7 @@ function Login() {
 
     try {
       if (!baseUrl || !token || token.length !== 6) {
-        throw new Error('请填写完整的登录信息');
+        throw new Error('请填写完整的登录信息（TOTP令牌必须为6位）');
       }
 
       const response = await authApi.login(baseUrl, token);
@@ -119,14 +87,14 @@ function Login() {
       if (response.code !== 200) {
         throw new Error(response.message || '登录失败，请重试');
       }
-
+      localStorage.setItem("libra-token",response.data);
       setBaseUrlToStorage(baseUrl);
-      setTokenToStorage(response.data);
-      localStorage.setItem('isLoggedIn', 'true');
 
-      navigate('/main');
+      navigate('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : '登录失败，请重试');
+      const errorMsg = err instanceof Error ? err.message : '登录失败，请重试';
+      setError(errorMsg);
+      console.error('登录失败:', errorMsg);
     } finally {
       setIsLoading(false);
     }
@@ -148,7 +116,7 @@ function Login() {
               id="baseUrl"
               type="url"
               value={baseUrl}
-              onChange={(e) => setBaseUrl(e.target.value)}
+              onChange={(e) => setBaseUrl(e.target.value.trim())} // 去除首尾空格
               placeholder="https://example.com"
               required
             />
@@ -158,7 +126,7 @@ function Login() {
             <Button 
               type="button" 
               className="w-full mb-4" 
-              isDisabled={isLoading}
+              isDisabled={isLoading || !baseUrl} // 空BaseURL禁用按钮
               onClick={testConnectivity}
             >
               {isLoading ? '测试连接中...' : '测试连通性'}
@@ -190,7 +158,7 @@ function Login() {
               <Button 
                 type="submit" 
                 className="w-full" 
-                isDisabled={isLoading}
+                isDisabled={isLoading || token.length !== 6} // 6位令牌才启用
               >
                 {isLoading ? '验证中...' : '校验'}
               </Button>
@@ -218,6 +186,7 @@ function Login() {
                           src={qrCodeUrl} 
                           alt="TOTP QR Code" 
                           className="w-64 h-64"
+                          onError={() => setError('二维码加载失败，请手动添加令牌')} // 二维码加载失败提示
                         />
                       </div>
                     )}

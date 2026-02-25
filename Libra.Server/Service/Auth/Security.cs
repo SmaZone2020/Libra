@@ -3,7 +3,7 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Libra.Server.Service
+namespace Libra.Server.Service.Auth
 {
     public static class CryptoService
     {

@@ -1,10 +1,10 @@
 using System.Collections.ObjectModel;
-using System.Net.Sockets;
 using System.Collections.Concurrent;
-using Libra.Server.Models.Agent;
-using Libra.Server.Models;
+using Libra.Virgo;
+using Libra.Virgo.Models;
+using Libra.Virgo.Enum;
 
-namespace Libra.Server.Service
+namespace Libra.Server.Service.Agent
 {
     /// <summary>
     /// Agent 列表管理（线程安全版本）
@@ -26,20 +26,25 @@ namespace Libra.Server.Service
         public static ObservableCollection<AgentInfo> AgentInfos { get; } = new();
 
         /// <summary>
-        /// Agent 连接字典 (快速查找用)
+        /// Agent 连接字典 (快速查找用) - 暂时未使用
         /// </summary>
-        public static ConcurrentDictionary<Guid, TcpClient> AgentConnections { get; } = new();
+        // public static ConcurrentDictionary<Guid, TcpClient> AgentConnections { get; } = new();
 
         /// <summary>
         /// Agent 会话字典 (内部使用)
         /// </summary>
         public static ConcurrentDictionary<Guid, AgentSession> AgentSessions { get; } = new();
 
+        /// <summary>
+        /// 消息队列服务（暂时未实现）
+        /// </summary>
+        // public static MessageQueue MessageQueue { get; } = new();
+
         #endregion
 
         #region 统计信息
 
-        public static int OnlineCount => AgentConnections.Count;
+        public static int OnlineCount => AgentSessions.Count;
         public static int TotalCount => AgentInfos.Count;
 
         #endregion
@@ -49,8 +54,15 @@ namespace Libra.Server.Service
         /// <summary>
         /// 添加或更新 Agent
         /// </summary>
-        public static void UpsertAgent(AgentInfo info, TcpClient client, AgentSession session)
+        public static void UpsertAgent(AgentInfo info, AgentSession session)
         {
+            // 移除旧会话的事件监听
+            var existingSession = AgentSessions.TryGetValue(info.AgentId, out var oldSession) ? oldSession : null;
+            if (existingSession != null)
+            {
+                existingSession.Disconnected -= OnSessionDisconnected;
+            }
+
             // 更新 ObservableCollection (需在 UI 线程)
             var existing = GetAgent(info.AgentId);
             if (existing != null)
@@ -63,9 +75,20 @@ namespace Libra.Server.Service
                 AgentInfos.Add(info);
             }
 
-            // 更新连接和会话
-            AgentConnections[info.AgentId] = client;
+            // 更新会话
             AgentSessions[info.AgentId] = session;
+
+            // 添加新会话的事件监听
+            session.Disconnected += OnSessionDisconnected;
+        }
+
+        /// <summary>
+        /// 处理会话断开连接的事件
+        /// </summary>
+        private static void OnSessionDisconnected(object sender, AgentSessionEventArgs e)
+        {
+            Console.WriteLine($"会话断开连接事件: AgentId = {e.AgentId}");
+            RemoveAgent(e.AgentId);
         }
 
         /// <summary>
@@ -78,7 +101,6 @@ namespace Libra.Server.Service
             {
                 AgentInfos.Remove(agent);
             }
-            AgentConnections.TryRemove(agentId, out _);
             AgentSessions.TryRemove(agentId, out _);
         }
 
@@ -93,9 +115,11 @@ namespace Libra.Server.Service
         /// <summary>
         /// 获取 Agent 连接
         /// </summary>
-        public static TcpClient? GetConnection(Guid agentId)
+        public static VirgoConnection? GetConnection(Guid agentId)
         {
-            return AgentConnections.TryGetValue(agentId, out var client) ? client : null;
+            // 暂时返回 null，因为我们没有直接存储 VirgoConnection
+            // 实际使用时，应该从 AgentSession 中获取
+            return null;
         }
 
         /// <summary>
@@ -104,7 +128,7 @@ namespace Libra.Server.Service
         public static ObservableCollection<AgentInfo> GetOnlineAgents()
         {
             return new ObservableCollection<AgentInfo>(
-                AgentInfos.Where(a => AgentConnections.ContainsKey(a.AgentId))
+                AgentInfos.Where(a => AgentSessions.ContainsKey(a.AgentId))
             );
         }
 
@@ -128,6 +152,22 @@ namespace Libra.Server.Service
                 query = query.Where(a => a.IsIdle == isIdle.Value);
 
             return new ObservableCollection<AgentInfo>(query);
+        }
+
+        /// <summary>
+        /// 向特定 Agent 发送消息
+        /// </summary>
+        /// <param name="agentId">Agent ID</param>
+        /// <param name="message">要发送的消息内容</param>
+        /// <returns>是否发送成功</returns>
+        public static async Task<bool> SendMessageToAgentAsync(Guid agentId, VirgoMessageType type, object data)
+        {
+            // 直接发送
+            if (AgentSessions.TryGetValue(agentId, out var session))
+            {
+                return await session.SendMessageAsync(type, data);
+            }
+            return false;
         }
 
         #endregion

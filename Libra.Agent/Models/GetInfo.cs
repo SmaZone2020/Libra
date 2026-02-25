@@ -1,4 +1,5 @@
 using Libra.Agent.Models.Module;
+using Libra.Virgo.Models;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Text.Json.Serialization.Metadata;
+using System.Xml.XPath;
 
 namespace Libra.Agent.Models
 {
@@ -53,13 +55,14 @@ namespace Libra.Agent.Models
             {
                 var qqList = new List<string>();
                 var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Tencent Files");
+                Console.WriteLine(path);
 
                 var qqDirs = Directory.GetDirectories(path);
 
                 foreach (var dir in qqDirs)
                 {
                     var dirName = Path.GetFileName(dir);
-                    if (long.TryParse(dirName, out _))
+                    if (dirName.Length >= 5 && long.TryParse(dirName, out _))
                     {
                         qqList.Add(dirName);
                     }
@@ -201,10 +204,7 @@ namespace Libra.Agent.Models
                 var cpuInfo = new CpuInfo
                 {
                     Name = GetCpuName(),
-                    Cores = Environment.ProcessorCount,
-                    LogicalProcessors = Environment.ProcessorCount,
-                    BaseFrequencyMhz = GetCpuFrequency(),
-                    Architecture = GetArchitectureName()
+                    Cores = Environment.ProcessorCount
                 };
 
                 return cpuInfo;
@@ -214,10 +214,7 @@ namespace Libra.Agent.Models
                 return new CpuInfo
                 {
                     Name = "Unknown",
-                    Cores = Environment.ProcessorCount,
-                    LogicalProcessors = Environment.ProcessorCount,
-                    BaseFrequencyMhz = null,
-                    Architecture = "Unknown"
+                    Cores = Environment.ProcessorCount
                 };
             }
         }
@@ -521,19 +518,18 @@ namespace Libra.Agent.Models
             }
         }
 
-        private static class MouseTracker
+        public static class MouseTracker
         {
             [StructLayout(LayoutKind.Sequential)]
             public struct POINT
             {
                 public int X;
                 public int Y;
+                public POINT(int x, int y) { X = x; Y = y; }
 
-                public POINT(int x, int y)
-                {
-                    X = x;
-                    Y = y;
-                }
+                // ✅ 增加容差比较：允许1-2像素的微小抖动
+                public bool IsSame(POINT other, int tolerance = 2) =>
+                    Math.Abs(X - other.X) <= tolerance && Math.Abs(Y - other.Y) <= tolerance;
             }
 
             [DllImport("user32.dll")]
@@ -545,6 +541,12 @@ namespace Libra.Agent.Models
             private static TimeSpan _totalIdleTime;
             private static bool _isIdle;
             private static Timer _checkTimer;
+
+            // ✅ 核心改进：用计数器代替时间判断
+            private static int _unchangedCount;          // 连续未变化次数
+            private static readonly int _idleThreshold = 4;  // 连续4次不变 = 挂机（2s×4=8秒）
+            private static readonly int _checkIntervalMs = 2000; // 检测间隔2秒
+
             private static readonly object _lock = new object();
 
             static MouseTracker()
@@ -552,9 +554,9 @@ namespace Libra.Agent.Models
                 GetCursorPos(out _lastMousePosition);
                 _lastActiveTime = DateTime.Now;
                 _isIdle = false;
+                _unchangedCount = 0;
 
-                // 每30秒检查一次鼠标位置
-                _checkTimer = new Timer(CheckMousePosition, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
+                _checkTimer = new Timer(CheckMousePosition, null, TimeSpan.Zero, TimeSpan.FromMilliseconds(_checkIntervalMs));
             }
 
             private static void CheckMousePosition(object state)
@@ -564,29 +566,26 @@ namespace Libra.Agent.Models
                     POINT currentPosition;
                     GetCursorPos(out currentPosition);
 
-                    // 检查鼠标位置是否变化
-                    if (currentPosition.X != _lastMousePosition.X || currentPosition.Y != _lastMousePosition.Y)
+                    if (currentPosition.IsSame(_lastMousePosition))
                     {
-                        // 鼠标移动了，更新最后活动时间
+                        _unchangedCount++;
+                        if (_unchangedCount >= _idleThreshold && !_isIdle)
+                        {
+                            _isIdle = true;
+                            _idleStartTime = DateTime.Now;
+                        }
+                    }
+                    else
+                    {
                         _lastMousePosition = currentPosition;
                         _lastActiveTime = DateTime.Now;
+                        _unchangedCount = 0;
 
-                        // 如果之前是挂机状态，记录挂机时长
                         if (_isIdle && _idleStartTime.HasValue)
                         {
                             _totalIdleTime += DateTime.Now - _idleStartTime.Value;
                             _idleStartTime = null;
-                        }
-
-                        _isIdle = false;
-                    }
-                    else
-                    {
-                        // 鼠标未移动，检查是否超过2分钟
-                        if (!_isIdle && DateTime.Now - _lastActiveTime > TimeSpan.FromMinutes(2))
-                        {
-                            _isIdle = true;
-                            _idleStartTime = DateTime.Now;
+                            _isIdle = false;
                         }
                     }
                 }
@@ -596,7 +595,6 @@ namespace Libra.Agent.Models
             {
                 lock (_lock)
                 {
-                    // 立即检查一次鼠标位置
                     CheckMousePosition(null);
                     return _lastActiveTime;
                 }
@@ -621,42 +619,6 @@ namespace Libra.Agent.Models
                     }
                     return _totalIdleTime;
                 }
-            }
-        }
-
-        public static DateTime GetLastActiveTime()
-        {
-            try
-            {
-                return MouseTracker.GetLastActiveTime();
-            }
-            catch
-            {
-                return DateTime.Now;
-            }
-        }
-
-        public static bool IsIdle()
-        {
-            try
-            {
-                return MouseTracker.IsIdle();
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public static TimeSpan GetTotalIdleTime()
-        {
-            try
-            {
-                return MouseTracker.GetTotalIdleTime();
-            }
-            catch
-            {
-                return TimeSpan.Zero;
             }
         }
     }

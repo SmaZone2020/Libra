@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Libra.Server.Service
+namespace Libra.Server.Service.Auth
 {
     public static class JwtService
     {

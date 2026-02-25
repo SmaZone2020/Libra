@@ -11,7 +11,9 @@
     <PackageJsonScriptsPreview Condition="$(PackageJsonScriptsPreview) == ''">vite preview</PackageJsonScriptsPreview>
     <PackageJsonDependenciesHerouiReact Condition="$(PackageJsonDependenciesHerouiReact) == ''">^3.0.0-beta.6</PackageJsonDependenciesHerouiReact>
     <PackageJsonDependenciesHerouiStyles Condition="$(PackageJsonDependenciesHerouiStyles) == ''">^3.0.0-beta.6</PackageJsonDependenciesHerouiStyles>
+    <PackageJsonDependenciesFramerMotion Condition="$(PackageJsonDependenciesFramerMotion) == ''">^12.34.3</PackageJsonDependenciesFramerMotion>
     <PackageJsonDependenciesLucide Condition="$(PackageJsonDependenciesLucide) == ''">^0.575.0</PackageJsonDependenciesLucide>
+    <PackageJsonDependenciesLucideReact Condition="$(PackageJsonDependenciesLucideReact) == ''">^0.575.0</PackageJsonDependenciesLucideReact>
     <PackageJsonDependenciesReact Condition="$(PackageJsonDependenciesReact) == ''">^19.2.4</PackageJsonDependenciesReact>
     <PackageJsonDependenciesReactDom Condition="$(PackageJsonDependenciesReactDom) == ''">^19.2.4</PackageJsonDependenciesReactDom>
     <PackageJsonDependenciesReactQrCode Condition="$(PackageJsonDependenciesReactQrCode) == ''">^2.0.18</PackageJsonDependenciesReactQrCode>

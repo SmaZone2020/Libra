@@ -21,5 +21,6 @@
         InternalError = 50001,
         DatabaseError = 50002,
         EncryptionError = 50003,
+        RequestTimeout = 50004
     }
 }

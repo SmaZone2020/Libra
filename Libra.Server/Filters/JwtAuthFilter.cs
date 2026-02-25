@@ -10,7 +10,6 @@ namespace Libra.Server.Filters
     {
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            // 从请求头获取Authorization字段
             var authHeader = context.HttpContext.Request.Headers.Authorization.FirstOrDefault();
             
             if (string.IsNullOrEmpty(authHeader))
@@ -24,7 +23,6 @@ namespace Libra.Server.Filters
                 return;
             }
 
-            // 提取token
             var token = authHeader.StartsWith("Bearer ") 
                 ? authHeader.Substring(7) 
                 : authHeader;

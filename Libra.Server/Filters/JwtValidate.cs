@@ -1,6 +1,6 @@
 ﻿using Libra.Server.Enum;
 using Libra.Server.Extensions;
-using Libra.Server.Service;
+using Libra.Server.Service.Auth;
 
 namespace Libra.Server.Filters
 {

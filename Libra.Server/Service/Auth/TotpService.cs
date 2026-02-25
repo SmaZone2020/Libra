@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using OtpNet;
-namespace Libra.Server.Service
+namespace Libra.Server.Service.Auth
 {
 
     public static class TotpService
