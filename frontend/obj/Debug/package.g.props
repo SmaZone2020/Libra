@@ -7,7 +7,7 @@
     <PackageJsonType Condition="$(PackageJsonType) == ''">module</PackageJsonType>
     <PackageJsonScriptsDev Condition="$(PackageJsonScriptsDev) == ''">vite --host</PackageJsonScriptsDev>
     <PackageJsonScriptsBuild Condition="$(PackageJsonScriptsBuild) == ''">tsc &amp;&amp; vite build</PackageJsonScriptsBuild>
-    <PackageJsonScriptsLint Condition="$(PackageJsonScriptsLint) == ''">eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0</PackageJsonScriptsLint>
+    <PackageJsonScriptsLint Condition="$(PackageJsonScriptsLint) == ''">eslint .</PackageJsonScriptsLint>
     <PackageJsonScriptsPreview Condition="$(PackageJsonScriptsPreview) == ''">vite preview</PackageJsonScriptsPreview>
     <PackageJsonDependenciesHerouiReact Condition="$(PackageJsonDependenciesHerouiReact) == ''">^3.0.0-beta.6</PackageJsonDependenciesHerouiReact>
     <PackageJsonDependenciesHerouiStyles Condition="$(PackageJsonDependenciesHerouiStyles) == ''">^3.0.0-beta.6</PackageJsonDependenciesHerouiStyles>

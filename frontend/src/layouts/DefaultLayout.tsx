@@ -2,18 +2,22 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useLocation } from "react-router-dom";
 import NavBar from "../components/Navbar";
 
+interface DefaultLayoutProps {
+  children: React.ReactNode;
+  showHeaderFooter?: boolean;
+  className?: string;
+}
+
 export default function DefaultLayout({
   children,
   showHeaderFooter = false,
-}: {
-  children: React.ReactNode;
-  showHeaderFooter?: boolean;
-}) {
+  className = "",
+}: DefaultLayoutProps) {
   const location = useLocation();
 
   return (
     <div
-      className="relative flex flex-col h-screen bg-[url('/bg.jpg')] bg-cover bg-center"
+      className={`relative flex flex-col h-screen bg-[url('/bg.jpg')] bg-cover bg-center ${className}`}
       id="app-container"
     >
       <div className="bg-surface/60 backdrop-blur-md dark:bg-surface/40 bg-blur-10 flex flex-row w-full h-full overflow-hidden">

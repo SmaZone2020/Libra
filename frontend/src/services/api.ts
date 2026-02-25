@@ -1,12 +1,5 @@
 // API服务层，处理与后端的通信
-
-// API响应类型
-export interface ApiResponse<T> {
-  code: number;
-  message: string;
-  data: T;
-  timestamp: number;
-}
+import { ApiResponse, Agent, AgentStats } from '../types';
 
 // 基础API请求函数
 async function apiRequest<T>(
@@ -40,13 +33,28 @@ async function apiRequest<T>(
   }
 }
 
+// 带认证的API请求函数
+async function authenticatedApiRequest<T>(
+  baseUrl: string,
+  endpoint: string,
+  token: string,
+  options: RequestInit = {}
+): Promise<ApiResponse<T>> {
+  return apiRequest<T>(baseUrl, endpoint, {
+    ...options,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      ...options.headers,
+    },
+  });
+}
+
 // 认证相关API
 export const authApi = {
   // 登录 - 提交TOTP验证码获取token
   login: async (baseUrl: string, code: string): Promise<ApiResponse<string>> => {
-    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     return apiRequest<string>(
-      cleanBaseUrl,
+      baseUrl,
       '/api/v1/login',
       {
         method: 'POST',
@@ -78,42 +86,30 @@ export const authApi = {
 
 export const agentApi = {
   // 在线列表
-  getOnlineAgents: async (baseUrl: string, token: string): Promise<ApiResponse<{ count: number; agents: any[] }>> => {
-    return apiRequest<{ count: number; agents: any[] }>(
+  getOnlineAgents: async (baseUrl: string, token: string): Promise<ApiResponse<{ count: number; agents: Agent[] }>> => {
+    return authenticatedApiRequest<{ count: number; agents: Agent[] }>(
       baseUrl,
       '/api/v1/agents/online',
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
+      token
     );
   },
 
   // 在线列表（带 type=1 参数）
   getOnlineAgentsWithType: async (baseUrl: string, token: string): Promise<ApiResponse<{ count: number; agents: string[] }>> => {
-    return apiRequest<{ count: number; agents: string[] }>(
+    return authenticatedApiRequest<{ count: number; agents: string[] }>(
       baseUrl,
       '/api/v1/agents/online?type=1',
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
+      token
     );
   },
 
   // 统计信息
-  getAgentStats: async (baseUrl: string, token: string): Promise<ApiResponse<{ onlineCount: number; idleCount: number; startTime: number; ping: number }>> => {
+  getAgentStats: async (baseUrl: string, token: string): Promise<ApiResponse<AgentStats>> => {
     const t = Date.now();
-    return apiRequest<{ onlineCount: number; idleCount: number; startTime: number; ping: number }>(
+    return authenticatedApiRequest<AgentStats>(
       baseUrl,
       `/api/v1/agents/stats?t=${t}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
+      token
     );
   },
 };
@@ -122,15 +118,12 @@ export const agentApi = {
 export const commandApi = {
   // 执行shell命令
   runShellCommand: async (baseUrl: string, token: string, agentId: string, command: string): Promise<ApiResponse<{ result: string }>> => {
-    return apiRequest<{ result: string }>(
+    return authenticatedApiRequest<{ result: string }>(
       baseUrl,
       `/api/v1/command/shell/${agentId}`,
+      token,
       {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(command),
       }
     );
@@ -141,14 +134,10 @@ export const commandApi = {
 export const monitorApi = {
   // 获取屏幕帧
   getScreenFrame: async (baseUrl: string, token: string, agentId: string): Promise<ApiResponse<string>> => {
-    return apiRequest<string>(
+    return authenticatedApiRequest<string>(
       baseUrl,
       `/api/v1/monitor/frame/${agentId}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
+      token
     );
   },
 };
@@ -157,15 +146,12 @@ export const monitorApi = {
 export const explorerApi = {
   // 获取文件列表
   getFiles: async (baseUrl: string, token: string, agentId: string, path: string): Promise<ApiResponse<string>> => {
-    return apiRequest<string>(
+    return authenticatedApiRequest<string>(
       baseUrl,
       `/api/v1/explorer/getfiles/${agentId}`,
+      token,
       {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(path),
       }
     );
@@ -173,15 +159,12 @@ export const explorerApi = {
   
   // 获取磁盘信息
   getDisks: async (baseUrl: string, token: string, agentId: string): Promise<ApiResponse<string>> => {
-    return apiRequest<string>(
+    return authenticatedApiRequest<string>(
       baseUrl,
       `/api/v1/explorer/disks/${agentId}`,
+      token,
       {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
       }
     );
   },

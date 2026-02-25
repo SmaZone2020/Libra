@@ -1,35 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Card, Select, ListBox, Label, Alert, Surface, Breadcrumbs, Description } from '@heroui/react';
+import { Card, Select, ListBox, Label, Alert } from '@heroui/react';
 import DefaultLayout from '../layouts/DefaultLayout';
 import { agentApi, explorerApi } from '../services/api';
-
-interface FileItem {
-  fileName: string;
-  changeDate: string;
-  size: string;
-  type: string;
-  isFolder: boolean;
-}
-
-interface DiskItem {
-  label: string;
-  name: string;
-  driveFormat: string;
-  totalSize: number;
-  availableSizes: number;
-}
-
-
-function base64ToUtf8(base64: string) {
-  try {
-    const binary = atob(base64);
-    const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
-    return new TextDecoder().decode(bytes);
-  } catch {
-    return '';
-  }
-}
-
+import { FileItem as FileItemType, DiskItem as DiskItemType } from '../types';
+import { base64ToUtf8 } from '../utils';
+import DiskItem from '../components/explorer/DiskItem';
+import FileItem from '../components/explorer/FileItem';
+import BreadcrumbNav from '../components/explorer/BreadcrumbNav';
 
 function Explorer() {
   const token = localStorage.getItem("libra-token");
@@ -37,8 +14,8 @@ function Explorer() {
   const [agents, setAgents] = useState<string[]>([]);
   const [selectedAgent, setSelectedAgent] = useState<string>('');
   const [currentPath, setCurrentPath] = useState<string>('');
-  const [files, setFiles] = useState<FileItem[]>([]);
-  const [disks, setDisks] = useState<DiskItem[]>([]);
+  const [files, setFiles] = useState<FileItemType[]>([]);
+  const [disks, setDisks] = useState<DiskItemType[]>([]);
   const [showDisks, setShowDisks] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -76,7 +53,7 @@ function Explorer() {
         const decoded = base64ToUtf8(response.data);
         const rawList = JSON.parse(decoded) || [];
 
-        const normalized: DiskItem[] = rawList.map((d: any) => ({
+        const normalized: DiskItemType[] = rawList.map((d: any) => ({
           label: d.label ?? d.Label ?? '',
           name: d.name ?? d.Name ?? '',
           driveFormat: d.driveFormat ?? d.DriveFormat ?? '',
@@ -112,7 +89,7 @@ function Explorer() {
 
         const rawList = JSON.parse(decoded) || [];
 
-        const normalized: FileItem[] = rawList.map((f: any) => ({
+        const normalized: FileItemType[] = rawList.map((f: any) => ({
           fileName: f.fileName ?? f.FileName ?? '',
           changeDate: f.changeDate ?? f.ChangeDate ?? '',
           size: f.size ?? f.Size ?? '',
@@ -155,6 +132,10 @@ const navigateToFolder = (folderName: string) => {
 
   setCurrentPath(`${currentPath}${folderName}\\`);
 };
+
+  const handleNavigateToPath = (path: string) => {
+    setCurrentPath(path);
+  };
 
 
   useEffect(() => {
@@ -207,21 +188,12 @@ const navigateToFolder = (folderName: string) => {
           {selectedAgent && (
             <div className="mb-4">
               <Label className="block text-sm font-medium mb-1">当前路径</Label>
-              <Surface className="p-2 rounded-lg">
-                <Breadcrumbs>
-                  <Breadcrumbs.Item onClick={() => setShowDisks(true)}>
-                    磁盘列表
-                  </Breadcrumbs.Item>
-                  {!showDisks && currentPath.split('\\').filter(Boolean).map((part, index, parts) => {
-                    const path = `/${parts.slice(0, index + 1).join('\\')}`;
-                    return (
-                      <Breadcrumbs.Item key={index} onClick={() => setCurrentPath(path)}>
-                        {part}
-                      </Breadcrumbs.Item>
-                    );
-                  })}
-                </Breadcrumbs>
-              </Surface>
+              <BreadcrumbNav 
+                currentPath={currentPath}
+                showDisks={showDisks}
+                onNavigateToRoot={() => setShowDisks(true)}
+                onNavigateToPath={handleNavigateToPath}
+              />
             </div>
           )}
 
@@ -239,38 +211,18 @@ const navigateToFolder = (folderName: string) => {
             )}
             {showDisks
                 ? disks.map((disk) => (
-                  <ListBox.Item
-                    key={disk.name}
-                    id={disk.name}
-                    textValue={disk.name}
-                    onAction={() => navigateToFolder(disk.name)}
-                  >
-                    <div className="flex flex-col">
-                      <Label>
-                        {disk.name} ({disk.label || '无标签'})
-                      </Label>
-                      <Description>
-                        {disk.driveFormat} · {disk.totalSize - disk.availableSizes}GB / {disk.totalSize}GB
-                      </Description>
-                    </div>
-                  </ListBox.Item>
+                  <DiskItem 
+                    key={disk.name} 
+                    disk={disk} 
+                    onAction={() => navigateToFolder(disk.name)} 
+                  />
                 ))
                 : files.map((file) => (
-                  <ListBox.Item
-                    key={file.fileName}
-                    id={file.fileName}
-                    textValue={file.fileName}
-                    onAction={() =>
-                      file.isFolder && navigateToFolder(file.fileName)
-                    }
-                  >
-                    <div className="flex flex-col">
-                      <Label>{file.fileName}</Label>
-                      <Description>
-                        {file.type} · {file.size} · {file.changeDate}
-                      </Description>
-                    </div>
-                  </ListBox.Item>
+                  <FileItem 
+                    key={file.fileName} 
+                    file={file} 
+                    onAction={() => navigateToFolder(file.fileName)} 
+                  />
                 ))
               }
           </ListBox>
