@@ -1,7 +1,6 @@
 using Libra.Agent.Models.Module;
 using Libra.Virgo.Models;
 using Microsoft.Win32;
-using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -39,32 +38,11 @@ namespace Libra.Agent.Models
         public static async Task<City> GetCity()
         {
             HttpClient client = new HttpClient();
-            var options = new JsonSerializerOptions
-            {
-                TypeInfoResolver = new DefaultJsonTypeInfoResolver()
-            };
-            var result = JsonSerializer.Deserialize<City>(await client.GetStringAsync("https://ipcity.api.etek.top/"), options);
+            var result = JsonSerializer.Deserialize<City>(await client.GetStringAsync("https://ipcity.api.etek.top/"), AgentJsonContext.Default.City);
             if (result == null)
                 return new City();
             else
                 return result;
-        }
-
-        public static int[] GetCameraList(int maxTest = 10)
-        {
-            var cameras = new List<int>();
-
-            for (int i = 0; i < maxTest; i++)
-            {
-                using var cap = new VideoCapture(i);
-
-                if (cap.IsOpened())
-                {
-                    cameras.Add(i);
-                }
-            }
-
-            return cameras.ToArray();
         }
 
         public static string[] GetQQList()

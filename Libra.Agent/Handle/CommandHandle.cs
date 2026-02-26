@@ -3,7 +3,6 @@ using Libra.Agent.Models;
 using Libra.Virgo;
 using Libra.Virgo.Enum;
 using Libra.Virgo.Models.MessageType;
-using OpenCvSharp;
 using System;
 using System.Buffers.Text;
 using System.Collections.Generic;
@@ -22,7 +21,7 @@ namespace Libra.Agent.Handle
 
             try
             {
-                Packet = Newtonsoft.Json.JsonConvert.DeserializeObject<CommandModel>(dataJson);
+                Packet = JsonSerializer.Deserialize<CommandModel>(dataJson, AgentJsonContext.Default.CommandModel);
             }
             catch (Exception ex)
             {

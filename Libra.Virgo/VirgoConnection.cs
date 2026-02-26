@@ -1,4 +1,5 @@
 using Libra.Virgo.Enum;
+using Libra.Virgo.Models;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
@@ -47,10 +48,10 @@ public class VirgoConnection
                         using var doc = JsonDocument.Parse(json);
                         {
                             var root = doc.RootElement;
-                            var typeValue = root.GetProperty("Type").GetInt32();
+                            var typeValue = root.GetProperty("type").GetInt32();
                             var type = (VirgoMessageType)typeValue;
 
-                            string dataJson = root.GetProperty("Data").ToString();
+                            string dataJson = root.GetProperty("data").ToString();
 
                             if (MessageReceived != null)
                                 await MessageReceived.Invoke(this, dataJson, type);
@@ -58,7 +59,7 @@ public class VirgoConnection
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"解析消息失败: {ex.Message}");
+                        Console.WriteLine($"解析消息失败: {ex.Message}, {ex.StackTrace}");
                         Console.WriteLine($"原始消息: {json}");
                     }
                 }
@@ -70,24 +71,18 @@ public class VirgoConnection
             }
         }
 
-    public async Task SendAsync(object data, VirgoMessageType type, CancellationToken ct)
+    public async Task SendAsync<T>(T data, VirgoMessageType type, CancellationToken ct)
     {
         if (!_client.Connected)
             return;
 
-        var envelope = new
+        var envelope = new VirgoEnvelope<T>()
         {
-            Type = (int)type,
+            Type = type,
             Data = data
         };
 
-        var options = new JsonSerializerOptions
-        {
-            TypeInfoResolver = new DefaultJsonTypeInfoResolver()
-        };
-
-        string json = JsonSerializer.Serialize(envelope, options);
-
+        string json = JsonSerializer.Serialize(envelope, VirgoJson.Options);
         byte[] payload = Encoding.UTF8.GetBytes(json);
 
         byte[] length = BitConverter.GetBytes(payload.Length);

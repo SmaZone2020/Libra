@@ -1,6 +1,7 @@
 // Libra Agent 启动程序
 using Libra.Agent;
 using Libra.Virgo.Enum;
+using Libra.Virgo.Models.MessageType;
 using System.Threading;
 
 Console.WriteLine("Libra Agent 启动中...");
@@ -8,7 +9,7 @@ Console.WriteLine("=====================");
 
 try
 {
-    string serverIp = "127.0.0.1";
+    string serverIp = "127.0.0.1";//116.62.22.115
     int serverPort = 8888;
 
     Console.WriteLine($"Agent ID: {Runtimes.AgentId}");
@@ -28,32 +29,28 @@ try
     try
     {
         await Runtimes.Initialize(serverIp, serverPort);
+
+        var random = new Random();
+        while (!cts.Token.IsCancellationRequested)
+        {
+            try
+            {
+                // 发送心跳
+                await Runtimes.SendMessage(VirgoMessageType.Heartbeat, new HeartbeatMessage { Status = "alive", Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds() });
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]已发送心跳");
+
+                await Task.Delay(30000, cts.Token);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"主循环出错: {ex.Message}");
+                await Task.Delay(60000, cts.Token);
+            }
+        }
     }
     catch (Exception ex)
     {
         Console.WriteLine($"连接失败: {ex.Message}");
-        Console.WriteLine("将在主循环中尝试重新连接...");
-    }
-
-    // 启动主循环
-    Console.WriteLine("正在启动主循环...");
-    var random = new Random();
-    while (!cts.Token.IsCancellationRequested)
-    {
-        try
-        {
-            // 发送心跳
-            await Runtimes.SendMessage(VirgoMessageType.Heartbeat, new { Status = "alive", Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds() });
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]已发送心跳");
-
-            await Task.Delay(30000, cts.Token);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"主循环出错: {ex.Message}");
-            // 异常退避策略
-            await Task.Delay(60000, cts.Token);
-        }
     }
 }
 catch (Exception ex)

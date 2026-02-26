@@ -43,6 +43,7 @@ function Agents() {
         <Card className="p-4">
           <AgentList agents={agents} />
         </Card>
+        {loading && <p>加载中...</p>}
       </div>
     </DefaultLayout>
   );

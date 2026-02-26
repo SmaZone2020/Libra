@@ -1,4 +1,4 @@
-import { Surface, Breadcrumbs, Label } from '@heroui/react';
+import { Surface, Breadcrumbs } from '@heroui/react';
 
 interface BreadcrumbNavProps {
   currentPath: string;

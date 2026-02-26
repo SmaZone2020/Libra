@@ -1,6 +1,5 @@
 using Libra.Virgo.Enum;
 using Libra.Virgo.Models.MessageType;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;

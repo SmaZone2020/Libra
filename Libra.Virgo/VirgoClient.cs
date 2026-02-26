@@ -26,12 +26,11 @@ public class VirgoClient
 
         _ = _connection.StartAsync(ct);
 
-        var agentJson = JsonSerializer.Serialize(agent, VirgoJson.Options);
-        await _connection.SendAsync(agentJson, VirgoMessageType.Register, ct);
+        await _connection.SendAsync<string>(JsonSerializer.Serialize(agent, VirgoJson.Options), VirgoMessageType.Register, ct);
     }
 
     public Task SendAsync<T>(T data, VirgoMessageType type, CancellationToken ct)
     {
-        return _connection!.SendAsync(data, type, ct);
+        return _connection!.SendAsync<T>(data, type, ct);
     }
 }
