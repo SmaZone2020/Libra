@@ -3,6 +3,7 @@ using Libra.Server.Extensions;
 using Libra.Server.Filters;
 using Libra.Server.Models;
 using Libra.Server.Models.API;
+using Libra.Server.Service;
 using Libra.Server.Service.Agent;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -74,7 +75,9 @@ namespace Libra.Server.Controllers.v1
                     OnlineCount = AgentList.OnlineCount,
                     IdleCount = AgentList.AgentInfos.Count(x => x.IsIdle),
                     StartTime = Program.StartTime.ToUnixTimestamp(),
-                    Ping = (int)(DateTime.Now.ToUnixTimestampMs() - t) //MS
+                    Ping = (int)(DateTime.Now.ToUnixTimestampMs() - t), //MS
+                    StreamHour = DataStreamLog.LastHour,
+                    StreamHourOut = DataStreamLogOutput.LastHour
                 };
 
                 return new()

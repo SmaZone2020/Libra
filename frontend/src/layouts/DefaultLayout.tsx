@@ -17,7 +17,7 @@ export default function DefaultLayout({
 
   return (
     <div
-      className={`relative flex flex-col h-screen bg-[url('/bg.jpg')] bg-cover bg-center ${className}`}
+      className={`relative flex flex-col bg-[url('/bg.jpg')] bg-cover bg-center h-screen overflow-y-auto ${className}`}
       id="app-container"
     >
       <div className="bg-surface/60 backdrop-blur-md dark:bg-surface/40 bg-blur-10 flex flex-row w-full h-full overflow-hidden">

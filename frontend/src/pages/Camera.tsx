@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Card, Button, Alert, Select, ListBox, Label } from '@heroui/react';
 import DefaultLayout from '../layouts/DefaultLayout';
-import { agentApi, monitorApi } from '../services/api';
+import { agentApi, cameraApi } from '../services/api';
 
-function Monitor() {
+function Camera() {
   const token = localStorage.getItem("libra-token");
   const [agents, setAgents] = useState<string[]>([]);
   const [selectedAgent, setSelectedAgent] = useState<string>('');
@@ -13,16 +13,13 @@ function Monitor() {
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [intervalId, setIntervalId] = useState<ReturnType<typeof setInterval> | null>(null);
 
-  // 轮询获取代理列表
   const fetchOnlineAgents = useCallback(async () => {
     if (!token) return;
     
     try {
       const baseUrl = localStorage.getItem("libra-base-url") || "http://localhost:5114";
-      // 使用新的 API 方法获取带 type=1 参数的代理列表
       const response = await agentApi.getOnlineAgentsWithType(baseUrl, token);
       if (response.code === 200) {
-        // 处理返回的代理 ID 数组
         const agentIds = response.data.agents;
         setAgents(agentIds);
       } else {
@@ -33,7 +30,6 @@ function Monitor() {
     }
   }, [token]);
 
-  // 获取屏幕帧
   const fetchFrame = useCallback(async () => {
     if (!token) {
       setError('未登录，请先登录');
@@ -50,10 +46,8 @@ function Monitor() {
 
     try {
       const baseUrl = localStorage.getItem("libra-base-url") || "http://localhost:5114";
-      // 使用新的 API 方法获取屏幕帧
-      const response = await monitorApi.getScreenFrame(baseUrl, token, selectedAgent);
+      const response = await cameraApi.getScreenFrame(baseUrl, token, selectedAgent);
       if (response.code === 200) {
-        // 处理返回的 base64 图片数据
         setImageData(`data:image/jpeg;base64,${response.data}`);
       } else {
         setError(`获取帧失败: ${response.message}`);
@@ -97,7 +91,7 @@ function Monitor() {
   return (
     <DefaultLayout>
       <div className="flex-1 p-6 h-screen overflow-y-auto">
-        <h1 className="text-2xl font-bold mb-6">监控</h1>
+        <h1 className="text-2xl font-bold mb-6">摄像头监控</h1>
 
         <Card className="p-6 mb-6">
           <div className="space-y-4">
@@ -157,14 +151,14 @@ function Monitor() {
               </Alert>
             )}
 
-            {/* 屏幕显示 */}
+            {/* 摄像头显示 */}
             <div className="mt-6">
-              <h2 className="text-lg font-semibold mb-4">屏幕显示</h2>
+              <h2 className="text-lg font-semibold mb-4">摄像头显示</h2>
               <div className="border border-border rounded-lg p-4 flex items-center justify-center" style={{ minHeight: '400px' }}>
                 {imageData ? (
-                  <img src={imageData} alt="屏幕监控" className="max-w-full max-h-full" />
+                  <img src={imageData} alt="摄像头监控" className="max-w-full max-h-full" />
                 ) : (
-                  <p className="text-muted">选择代理后点击"获取一帧"或"开始监控"查看屏幕内容</p>
+                  <p className="text-muted">选择代理后点击"获取一帧"或"开始监控"查看摄像头内容</p>
                 )}
               </div>
             </div>
@@ -175,4 +169,4 @@ function Monitor() {
   );
 }
  
-export { Monitor as default };
+export { Camera as default };

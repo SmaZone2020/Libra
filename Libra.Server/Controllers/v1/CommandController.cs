@@ -55,7 +55,7 @@ namespace Libra.Server.Controllers.v1
                 for (int i = 0; i < 16; i++)
                 {
                     task = TaskList.CommandTasks.GetValueOrDefault(tid) ?? throw new Exception("任务不存在");
-                    if (i >= 15)
+                    if (i >= 30)
                     {
                         return new()
                         {
@@ -69,7 +69,7 @@ namespace Libra.Server.Controllers.v1
                     task.Result = Encoding.UTF8.GetString(Convert.FromBase64String(task.Result.ToString()));
 
 
-                    await Task.Delay(999);
+                    await Task.Delay(500);
                 }
 
                 TaskList.CommandTasks.Remove(tid);

@@ -6,6 +6,7 @@ import Shell from '../pages/Shell';
 import Monitor from '../pages/Monitor';
 import Explorer from '../pages/Explorer';
 import RequireAuth from '../components/RequireAuth';
+import Camera from '../pages/Camera';
 
 function AppRoutes() {
   return (
@@ -44,6 +45,15 @@ function AppRoutes() {
         element={
           <RequireAuth>
             <Monitor />
+          </RequireAuth>
+        } 
+      />
+
+      <Route 
+        path="/camera" 
+        element={
+          <RequireAuth>
+            <Camera />
           </RequireAuth>
         } 
       />

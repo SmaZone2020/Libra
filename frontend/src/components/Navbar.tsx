@@ -26,7 +26,7 @@ export default function NavBar() {
   return (
     <aside
       className={clsx(
-        `w-[70px] bg-surface border-r border-border shadow-md transition-all duration-300`
+        `w-[70px] sm:w-[60px] bg-surface border-r border-border shadow-md transition-all duration-300`
       )}
     >
       {/* LOGO */}
@@ -35,7 +35,7 @@ export default function NavBar() {
       </div>
 
       {/* 导航 */}
-      <nav className={clsx(`flex w-[70px] flex-col ml-[4px] p-2 space-y-1`)}>
+      <nav className={clsx(`flex flex-col items-center p-2 space-y-1`)}>
         {siteConfig.navItems.map((item, idx) => {
           const isActive = location.pathname === item.href;
           return (

@@ -1,8 +1,10 @@
 using Libra.Server.Enum;
 using Libra.Server.Extensions;
 using Libra.Server.Filters;
+using Libra.Server.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Newtonsoft.Json;
 
 namespace Libra.Server.Filters
 {
@@ -11,7 +13,7 @@ namespace Libra.Server.Filters
         public void OnAuthorization(AuthorizationFilterContext context)
         {
             var authHeader = context.HttpContext.Request.Headers.Authorization.FirstOrDefault();
-            
+            DataStreamLogOutput.Add(context.HttpContext.Request.ContentLength ?? 0);
             if (string.IsNullOrEmpty(authHeader))
             {
                 context.Result = new UnauthorizedObjectResult(new

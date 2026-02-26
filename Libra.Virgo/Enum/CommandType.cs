@@ -8,9 +8,12 @@ namespace Libra.Virgo.Enum
     {
         Shell,
         GetFrame,
+        GetCameraFrame,
 
         GetFiles,
         GetDisks,
+        ReadFile,
+
         GetProcesses,
 
     }

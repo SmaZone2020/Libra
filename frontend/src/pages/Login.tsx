@@ -3,7 +3,6 @@ import { Button, Card, Input, Label, Form, Fieldset, ErrorMessage, InputOTP, Mod
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../services/api';
 
-// 定义存储键名常量，避免硬编码错误
 const STORAGE_KEYS = {
   BASE_URL: 'libra-base-url'
 };
@@ -18,25 +17,19 @@ function Login() {
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const navigate = useNavigate();
 
-  // ========== 存储操作函数 ==========
-  // 从localStorage获取baseUrl
   const getBaseUrlFromStorage = (): string | null => {
     return localStorage.getItem(STORAGE_KEYS.BASE_URL);
   };
 
-  // 将baseUrl存储到localStorage
   const setBaseUrlToStorage = (baseUrl: string): void => {
     localStorage.setItem(STORAGE_KEYS.BASE_URL, baseUrl);
   };
 
-  // ========== 初始化逻辑 ==========
   useEffect(() => {
-    // 只从存储加载baseUrl到页面状态
     const savedBaseUrl = getBaseUrlFromStorage();
-    if (savedBaseUrl) setBaseUrl(savedBaseUrl); // 回显BaseURL
+    if (savedBaseUrl) setBaseUrl(savedBaseUrl);
   }, []);
 
-  // ========== 测试连接逻辑（优化错误处理） ==========
   const testConnectivity = async () => {
     setError('');
     setIsLoading(true);
@@ -45,7 +38,6 @@ function Login() {
       if (!baseUrl) {
         throw new Error('请输入BaseURL');
       }
-      // 校验BaseURL格式
       if (!/^https?:\/\/.+/.test(baseUrl)) {
         throw new Error('BaseURL格式错误，请以http/https开头');
       }
@@ -102,7 +94,7 @@ function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <Card className="w-[400px] p-8 shadow-lg">
+      <Card className="max-w-[600px] p-8 shadow-lg">
         <h1 className="text-2xl font-bold mb-6 text-center">Libra 登录</h1>
         
         {error && (
@@ -115,8 +107,9 @@ function Login() {
             <Input
               id="baseUrl"
               type="url"
+              className="w-full"
               value={baseUrl}
-              onChange={(e) => setBaseUrl(e.target.value.trim())} // 去除首尾空格
+              onChange={(e) => setBaseUrl(e.target.value.trim())}
               placeholder="https://example.com"
               required
             />
@@ -126,7 +119,7 @@ function Login() {
             <Button 
               type="button" 
               className="w-full mb-4" 
-              isDisabled={isLoading || !baseUrl} // 空BaseURL禁用按钮
+              isDisabled={isLoading || !baseUrl} 
               onClick={testConnectivity}
             >
               {isLoading ? '测试连接中...' : '测试连通性'}
@@ -158,7 +151,7 @@ function Login() {
               <Button 
                 type="submit" 
                 className="w-full" 
-                isDisabled={isLoading || token.length !== 6} // 6位令牌才启用
+                isDisabled={isLoading || token.length !== 6}
               >
                 {isLoading ? '验证中...' : '校验'}
               </Button>
@@ -166,7 +159,6 @@ function Login() {
           )}
         </Form>
 
-        {/* 二维码模态框 */}
         {showQrModal && (
           <Modal isOpen={showQrModal}>
             <Modal.Backdrop isDismissable={false}>
@@ -186,7 +178,7 @@ function Login() {
                           src={qrCodeUrl} 
                           alt="TOTP QR Code" 
                           className="w-64 h-64"
-                          onError={() => setError('二维码加载失败，请手动添加令牌')} // 二维码加载失败提示
+                          onError={() => setError('二维码加载失败，请手动添加令牌')}
                         />
                       </div>
                     )}
@@ -196,7 +188,7 @@ function Login() {
                       setShowQrModal(false);
                       setShowTotp(true);
                     }}>
-                      我已添加通行令牌到我信任的应用中
+                      我已添加通行令牌
                     </Button>
                   </Modal.Footer>
                 </Modal.Dialog>

@@ -5,6 +5,7 @@ import { getRunningTime } from '../utils';
 import { AgentStats } from '../types';
 import StatCard from '../components/common/StatCard';
 import SystemOverview from '../components/common/SystemOverview';
+import LineChart from '../components/common/LineChart';
 
 function Main() {
   const token = localStorage.getItem("libra-token");
@@ -12,7 +13,9 @@ function Main() {
     onlineCount: 0,
     idleCount: 0,
     startTime: 0,
-    ping: 0
+    ping: 0,
+    streamHour: {},
+    streamHourOutput: {}
   });
 
   const fetchAgentStats = useCallback(async () => {
@@ -42,9 +45,11 @@ function Main() {
 
   return (
     <DefaultLayout>
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col h-screen overflow-y-auto">
         <div className="flex-1 p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+          <SystemOverview />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-6">
             {
               [
                 { title: '在线设备', value: stats.onlineCount.toString(), icon: '🟢' },
@@ -57,7 +62,21 @@ function Main() {
             }
           </div>
 
-          <SystemOverview />
+          <LineChart
+            datasets={[
+              {
+                name: '上行流量',
+                data: Object.entries(stats.streamHour || {}).slice(-20).map(([hour, value]) => ({ hour, value: Number(value) })),
+                color: '#8884d8'
+              },
+              {
+                name: '下行流量',
+                data: Object.entries(stats.streamHourOutput || {}).slice(-20).map(([hour, value]) => ({ hour, value: Number(value) })),
+                color: '#82ca9d'
+              }
+            ]}
+          />
+
         </div>
       </div>
     </DefaultLayout>

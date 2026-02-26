@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenCvSharp;
+using System;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -39,6 +40,40 @@ namespace Libra.Agent.Helper
         public const int SM_CYSCREEN = 1;
 
         #endregion
+
+        public static byte[]? CaptureCameraFrame(
+            int cameraIndex = 0,
+            int width = 1280,
+            int height = 720,
+            long jpegQuality = 60)
+        {
+            using var capture = new VideoCapture(cameraIndex);
+
+            if (!capture.IsOpened())
+                return null;
+
+            capture.Set(VideoCaptureProperties.FrameWidth, width);
+            capture.Set(VideoCaptureProperties.FrameHeight, height);
+
+            using var frame = new Mat();
+
+            capture.Read(frame);
+
+            if (frame.Empty())
+                return null;
+
+            var encodeParams = new ImageEncodingParam[]
+            {
+                new ImageEncodingParam(ImwriteFlags.JpegQuality, (int)jpegQuality)
+            };
+
+            Cv2.ImEncode(".jpg", frame, out var buffer, encodeParams);
+
+            if (buffer == null || buffer.Length == 0)
+                return null;
+
+            return buffer;
+        }
 
         /// <summary>
         /// 捕获完整桌面截图

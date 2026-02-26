@@ -1,4 +1,5 @@
 using Libra.Server.Handle;
+using Libra.Server.Service;
 using Libra.Server.Service.Agent;
 using Libra.Virgo;
 using Libra.Virgo.Enum;
@@ -11,6 +12,7 @@ namespace Libra.Server
     {
         public static VirgoServer? VirgoServer { get; private set; }
         public static DateTime StartTime { get; } = DateTime.Now;
+
 
         public static void Initialize(int port = 8888)
         {
@@ -30,12 +32,12 @@ namespace Libra.Server
                 {
                     Console.WriteLine($"收到消息: {type}");
                     //Console.WriteLine($"数据: {dataJson}");
-
+                    DataStreamLog.Add(dataJson.Length);
                     MainHandle.Handle(type, JsonConvert.DeserializeObject<object>(dataJson));
 
                 };
 
-                // 启动 Virgo 服务器
+                // 启动 Virgo 服务端
                 var cts = new CancellationTokenSource();
                 _ = VirgoServer.StartAsync(cts.Token);
                 Console.WriteLine($"Virgo Server started on port {port}");
@@ -56,6 +58,7 @@ namespace Libra.Server
         /// <returns>是否发送成功</returns>
         public static async Task<bool> SendMessageToAgent(Guid agentId, VirgoMessageType type, object data)
         {
+            DataStreamLogOutput.Add(JsonConvert.SerializeObject(data).Length);
             return await AgentList.SendMessageToAgentAsync(agentId, type, data);
         }
     }

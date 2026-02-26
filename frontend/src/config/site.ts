@@ -24,6 +24,11 @@ export const siteConfig = {
       href: "/monitor",
     },
     {
+      icon: "camera",
+      label: "摄像头",
+      href: "/camera",
+    },
+    {
       icon: "folder",
       label: "文件管理",
       href: "/explorer",

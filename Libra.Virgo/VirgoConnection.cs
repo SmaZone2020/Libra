@@ -26,45 +26,49 @@ public class VirgoConnection
     }
 
     public async Task StartAsync(CancellationToken ct)
-    {
-        try
         {
-            while (!ct.IsCancellationRequested)
+            try
             {
-                var json = await _reader.ReadAsync(ct);
-
-                if (string.IsNullOrWhiteSpace(json))
-                    continue;
-
-                LastActive = DateTime.UtcNow;
-
-                try
+                while (!ct.IsCancellationRequested)
                 {
-                    using var doc = JsonDocument.Parse(json.Trim());
+                    var json = await _reader.ReadAsync(ct);
+
+                    if (string.IsNullOrWhiteSpace(json))
+                        continue;
+
+                    LastActive = DateTime.UtcNow;
+
+                    try
                     {
-                        var root = doc.RootElement;
-                        var typeValue = root.GetProperty("Type").GetInt32();
-                        var type = (VirgoMessageType)typeValue;
+                        // 清理JSON字符串，移除可能的空字节和其他无效字符
+                        json = json.Trim();
+                        json = new string(json.Where(c => c >= 32 || c == '\n' || c == '\r' || c == '\t').ToArray());
+                        
+                        using var doc = JsonDocument.Parse(json);
+                        {
+                            var root = doc.RootElement;
+                            var typeValue = root.GetProperty("Type").GetInt32();
+                            var type = (VirgoMessageType)typeValue;
 
-                        string dataJson = root.GetProperty("Data").ToString();
+                            string dataJson = root.GetProperty("Data").ToString();
 
-                        if (MessageReceived != null)
-                            await MessageReceived.Invoke(this, dataJson, type);
+                            if (MessageReceived != null)
+                                await MessageReceived.Invoke(this, dataJson, type);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"解析消息失败: {ex.Message}");
+                        Console.WriteLine($"原始消息: {json}");
                     }
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"解析消息失败: {ex.Message}");
-                    Console.WriteLine($"原始消息: {json}");
-                }
+            }
+            catch { }
+            finally
+            {
+                Disconnect();
             }
         }
-        catch { }
-        finally
-        {
-            Disconnect();
-        }
-    }
 
     public async Task SendAsync(object data, VirgoMessageType type, CancellationToken ct)
     {

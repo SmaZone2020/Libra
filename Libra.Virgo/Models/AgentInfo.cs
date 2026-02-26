@@ -72,6 +72,7 @@ public class HardwareInfo
     [JsonPropertyName("disks")] public List<object> Disks { get; set; } = new();
     [JsonPropertyName("isVirtualMachine")] public bool IsVirtualMachine { get; set; }
     [JsonPropertyName("vmType")] public string? VmType { get; set; }
+    [JsonPropertyName("cameras")] public int[] Cameras { get; set; }
 }
 
 public class CpuInfo

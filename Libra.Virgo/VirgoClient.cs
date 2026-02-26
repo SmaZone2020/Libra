@@ -32,7 +32,6 @@ public class VirgoClient
 
     public Task SendAsync<T>(T data, VirgoMessageType type, CancellationToken ct)
     {
-        var dataJson = JsonSerializer.Serialize(data, VirgoJson.Options);
-        return _connection!.SendAsync(dataJson, type, ct);
+        return _connection!.SendAsync(data, type, ct);
     }
 }

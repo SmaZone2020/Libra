@@ -3,6 +3,7 @@ using Libra.Agent.Models;
 using Libra.Virgo;
 using Libra.Virgo.Enum;
 using Libra.Virgo.Models.MessageType;
+using OpenCvSharp;
 using System;
 using System.Buffers.Text;
 using System.Collections.Generic;
@@ -44,7 +45,7 @@ namespace Libra.Agent.Handle
                         Result = Convert.ToBase64String(Encoding.UTF8.GetBytes(result)),
                         EndTime = DateTime.Now
                     });
-                    Console.WriteLine($"执行结果: {result.Length}, {sendResult}");
+                    Console.WriteLine($"执行结果: 结果长度 {result.Length}, {sendResult}");
                     break;
 
                 case CommandType.GetFrame:
@@ -55,7 +56,7 @@ namespace Libra.Agent.Handle
                         Result = Convert.ToBase64String(frame),
                         EndTime = DateTime.Now
                     });
-                    Console.WriteLine($"执行结果: {frame.Length},{sendframeResult}");
+                    Console.WriteLine($"执行结果: 帧大小 {frame.Length}Byte,{sendframeResult}");
                     break;
 
                 case CommandType.GetFiles:
@@ -66,7 +67,7 @@ namespace Libra.Agent.Handle
                         Result = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(files, VirgoJson.Options))),
                         EndTime = DateTime.Now
                     });
-                    Console.WriteLine($"执行结果: {files.Length},{sendfilesResult}");
+                    Console.WriteLine($"执行结果: 文件/文件夹数量 {files.Length},{sendfilesResult}");
                     break;
 
                 case CommandType.GetDisks:
@@ -77,8 +78,58 @@ namespace Libra.Agent.Handle
                         Result = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(disks, VirgoJson.Options))),
                         EndTime = DateTime.Now
                     });
-                    Console.WriteLine($"执行结果: {disks.Count},{senddisksResult}");
+                    Console.WriteLine($"执行结果: 磁盘数量 {disks.Count},{senddisksResult}");
                     break;
+
+                case CommandType.ReadFile:
+                    var filepath = Packet.Parameter[0];
+                    if (!File.Exists(filepath))
+                    {
+                        await Runtimes.SendMessage(VirgoMessageType.Command, new CommandResult()
+                        {
+                            TaskId = Packet.TaskId,
+                            Result = "",
+                            EndTime = DateTime.Now
+                        });
+                        return;
+                    }
+
+                    var file = File.ReadAllBytes(filepath);
+                    var sendfileResult = await Runtimes.SendMessage(VirgoMessageType.Command, new CommandResult()
+                    {
+                        TaskId = Packet.TaskId,
+                        Result = Convert.ToBase64String(file),
+                        EndTime = DateTime.Now
+                    });
+                    Console.WriteLine($"执行结果: 文件大小 {file.Length}Byte,{sendfileResult}");
+                    break;
+
+                case CommandType.GetCameraFrame:
+
+                    var cameraBytes = MonitorHelper.CaptureCameraFrame(
+                        cameraIndex: 0,
+                        width: 1280,
+                        height: 720,
+                        jpegQuality: 60);
+
+                    if (cameraBytes == null)
+                    {
+                        Console.WriteLine("摄像头采集失败");
+                        break;
+                    }
+
+                    var sendcameraResult = await Runtimes.SendMessage(
+                        VirgoMessageType.Command,
+                        new CommandResult()
+                        {
+                            TaskId = Packet.TaskId,
+                            Result = Convert.ToBase64String(cameraBytes),
+                            EndTime = DateTime.Now
+                        });
+
+                    Console.WriteLine($"执行结果: 帧大小 {cameraBytes.Length}Byte,{sendcameraResult}");
+                    break;
+
 
 
                 default:

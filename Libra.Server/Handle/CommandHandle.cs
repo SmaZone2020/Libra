@@ -12,7 +12,7 @@ namespace Libra.Server.Handle
         {
             if (pack == null) return;
 
-            Console.WriteLine($"收到命令结果：{JsonConvert.SerializeObject(pack)}");
+            //Console.WriteLine($"收到命令结果：{JsonConvert.SerializeObject(pack)}");
 
             if (pack is Newtonsoft.Json.Linq.JObject jObject)
             {
@@ -45,12 +45,18 @@ namespace Libra.Server.Handle
                 frame.EndTime = Packet.EndTime;
                 frame.IsCompleted = true;
             }
-            if (TaskList.ExplorerTasks.TryGetValue(Packet.TaskId, out var explorer))
+            else if (TaskList.ExplorerTasks.TryGetValue(Packet.TaskId, out var explorer))
             {
                 explorer.Result = Packet.Result;
                 explorer.EndTime = Packet.EndTime;
                 explorer.IsCompleted = true;
 
+            }
+            else if (TaskList.CameraFrameTasks.TryGetValue(Packet.TaskId, out var camera))
+            {
+                camera.Result = Packet.Result;
+                camera.EndTime = Packet.EndTime;
+                camera.IsCompleted = true;
             }
 
         }

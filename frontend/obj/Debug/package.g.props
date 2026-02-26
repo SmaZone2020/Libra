@@ -18,6 +18,7 @@
     <PackageJsonDependenciesReactDom Condition="$(PackageJsonDependenciesReactDom) == ''">^19.2.4</PackageJsonDependenciesReactDom>
     <PackageJsonDependenciesReactQrCode Condition="$(PackageJsonDependenciesReactQrCode) == ''">^2.0.18</PackageJsonDependenciesReactQrCode>
     <PackageJsonDependenciesReactRouterDom Condition="$(PackageJsonDependenciesReactRouterDom) == ''">^7.13.0</PackageJsonDependenciesReactRouterDom>
+    <PackageJsonDependenciesRecharts Condition="$(PackageJsonDependenciesRecharts) == ''">^3.7.0</PackageJsonDependenciesRecharts>
     <PackageJsonDevdependenciesTailwindcssPostcss Condition="$(PackageJsonDevdependenciesTailwindcssPostcss) == ''">^4.1.18</PackageJsonDevdependenciesTailwindcssPostcss>
     <PackageJsonDevdependenciesTypesReact Condition="$(PackageJsonDevdependenciesTypesReact) == ''">^18.2.0</PackageJsonDevdependenciesTypesReact>
     <PackageJsonDevdependenciesTypesReactDom Condition="$(PackageJsonDevdependenciesTypesReactDom) == ''">^18.2.0</PackageJsonDevdependenciesTypesReactDom>

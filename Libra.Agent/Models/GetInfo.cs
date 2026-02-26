@@ -1,6 +1,7 @@
 using Libra.Agent.Models.Module;
 using Libra.Virgo.Models;
 using Microsoft.Win32;
+using OpenCvSharp;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,8 +9,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
 using System.Text.Json.Serialization.Metadata;
+using System.Threading;
 using System.Xml.XPath;
 
 namespace Libra.Agent.Models
@@ -47,6 +48,23 @@ namespace Libra.Agent.Models
                 return new City();
             else
                 return result;
+        }
+
+        public static int[] GetCameraList(int maxTest = 10)
+        {
+            var cameras = new List<int>();
+
+            for (int i = 0; i < maxTest; i++)
+            {
+                using var cap = new VideoCapture(i);
+
+                if (cap.IsOpened())
+                {
+                    cameras.Add(i);
+                }
+            }
+
+            return cameras.ToArray();
         }
 
         public static string[] GetQQList()

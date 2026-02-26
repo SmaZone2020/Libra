@@ -1,4 +1,3 @@
-// API服务层，处理与后端的通信
 import { ApiResponse, Agent, AgentStats } from '../types';
 
 // 基础API请求函数
@@ -33,7 +32,6 @@ async function apiRequest<T>(
   }
 }
 
-// 带认证的API请求函数
 async function authenticatedApiRequest<T>(
   baseUrl: string,
   endpoint: string,
@@ -94,7 +92,7 @@ export const agentApi = {
     );
   },
 
-  // 在线列表（带 type=1 参数）
+  // 在线列表
   getOnlineAgentsWithType: async (baseUrl: string, token: string): Promise<ApiResponse<{ count: number; agents: string[] }>> => {
     return authenticatedApiRequest<{ count: number; agents: string[] }>(
       baseUrl,
@@ -114,7 +112,7 @@ export const agentApi = {
   },
 };
 
-// 命令执行相关API
+// 命令执行API
 export const commandApi = {
   // 执行shell命令
   runShellCommand: async (baseUrl: string, token: string, agentId: string, command: string): Promise<ApiResponse<{ result: string }>> => {
@@ -125,12 +123,15 @@ export const commandApi = {
       {
         method: 'POST',
         body: JSON.stringify(command),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       }
     );
   },
 };
 
-// 监控相关API
+// 监控API
 export const monitorApi = {
   // 获取屏幕帧
   getScreenFrame: async (baseUrl: string, token: string, agentId: string): Promise<ApiResponse<string>> => {
@@ -141,7 +142,16 @@ export const monitorApi = {
     );
   },
 };
-
+export const cameraApi = {
+  // 获取屏幕帧
+  getScreenFrame: async (baseUrl: string, token: string, agentId: string): Promise<ApiResponse<string>> => {
+    return authenticatedApiRequest<string>(
+      baseUrl,
+      `/api/v1/monitor/camera/${agentId}`,
+      token
+    );
+  },
+};
 // 文件资源管理器相关API
 export const explorerApi = {
   // 获取文件列表
@@ -153,6 +163,9 @@ export const explorerApi = {
       {
         method: 'POST',
         body: JSON.stringify(path),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       }
     );
   },
@@ -165,6 +178,22 @@ export const explorerApi = {
       token,
       {
         method: 'POST',
+      }
+    );
+  },
+  
+  // 下载文件
+  getFile: async (baseUrl: string, token: string, agentId: string, filepath: string): Promise<ApiResponse<{ fileName: string; content: string }>> => {
+    return authenticatedApiRequest<{ fileName: string; content: string }>(
+      baseUrl,
+      `/api/v1/explorer/getfile/${agentId}`,
+      token,
+      {
+        method: 'POST',
+        body: JSON.stringify(filepath),
+        headers: {
+          'Content-Type': 'application/json',
+        },
       }
     );
   },

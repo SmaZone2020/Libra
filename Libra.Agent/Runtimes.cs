@@ -67,7 +67,8 @@ namespace Libra.Agent
                         Gpus = gpuInfo,
                         Disks = diskInfo.Cast<object>().ToList(),
                         IsVirtualMachine = vmInfo.IsVirtualMachine,
-                        VmType = vmInfo.VmType
+                        VmType = vmInfo.VmType,
+                        Cameras = []
                     }
                 };
 

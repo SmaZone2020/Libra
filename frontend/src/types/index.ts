@@ -62,4 +62,6 @@ export interface AgentStats {
   idleCount: number;
   startTime: number;
   ping: number;
+  streamHour: Record<string, number> ;
+  streamHourOutput: Record<string, number> ;
 }

@@ -39,15 +39,7 @@ namespace Libra.Server.Service.Agent
 
             try
             {
-                // 先将data对象序列化为JSON字符串
-                var options = new System.Text.Json.JsonSerializerOptions
-                {
-                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-                    PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase,
-                    WriteIndented = false
-                };
-                var dataJson = System.Text.Json.JsonSerializer.Serialize(data, options);
-                await _connection.SendAsync(dataJson, type, CancellationToken.None);
+                await _connection.SendAsync(data, type, CancellationToken.None);
                 
                 return true;
             }

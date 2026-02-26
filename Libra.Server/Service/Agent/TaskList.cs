@@ -7,6 +7,7 @@ namespace Libra.Server.Service.Agent
     {
         public static Dictionary<Guid, CommandTask> CommandTasks { get; } = [];
         public static Dictionary<Guid, CommandTask> FrameTasks { get; } = [];
+        public static Dictionary<Guid, CommandTask> CameraFrameTasks { get; } = [];
         public static Dictionary<Guid, CommandTask> ExplorerTasks { get; } = [];
     }
 
