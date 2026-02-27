@@ -100,5 +100,65 @@ namespace Libra.Server.Controllers.v1
                 };
             }
         }
+
+        [HttpPost("build")]
+        public async Task<ApiResponse<object>> GetBuildInfo([FromBody] BuildBody body )
+        {
+            try
+            {
+                var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Libra.Agent.dll");
+                var buildPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Build");
+
+                if (!System.IO.File.Exists(filePath))
+                {
+                    return new()
+                    {
+                        Code = LibraStatusCode.InternalError,
+                        Message = "构建失败",
+                    };
+                }
+
+                if(!Directory.Exists(buildPath)) Directory.CreateDirectory(buildPath);
+                var guid = Guid.NewGuid().ToString();
+                var outPath = Path.Combine(buildPath, guid, $"{guid}.exe");
+
+                Directory.CreateDirectory(Path.Combine(buildPath, guid));
+                System.IO.File.Copy(filePath, outPath);
+
+                if(BinaryPatcher.ReplaceString(outPath, "{IP.IP.IP.IP}", body.Host) &&
+                   BinaryPatcher.ReplaceInt32(outPath, 20230602, body.Port) &&
+                   BinaryPatcher.ReplaceString(outPath, "{AuthToken}", body.Token))
+                {
+                    return new()
+                    {
+                        Code = LibraStatusCode.Success,
+                        Message = "构建成功",
+                        Data = new
+                        {
+                            FileName = $"{guid}.exe",
+                            Content = Convert.ToBase64String(System.IO.File.ReadAllBytes(outPath))
+                        },
+                        Timestamp = DateTime.Now.ToUnixTimestamp()
+                    };
+                }
+
+
+                return new()
+                {
+                    Code = LibraStatusCode.Success,
+                    Message = "构建失败",
+                    Timestamp = DateTime.Now.ToUnixTimestamp()
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "构建失败");
+                return new()
+                {
+                    Code = LibraStatusCode.InternalError,
+                    Message = "构建失败",
+                };
+            }
+        }
     }
 }

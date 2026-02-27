@@ -11,10 +11,10 @@ namespace Libra.Agent.Handle
     {
         public static async Task Handle(string dataJson, VirgoMessageType type)
         {
-            Console.WriteLine($"收到消息类型: {type}");
+            //D Console.WriteLine($"收到消息类型: {type}");
             
-            Console.WriteLine($"数据长度: {dataJson.Length}");
-            Console.WriteLine($"原始JSON: {dataJson}");
+            //D Console.WriteLine($"数据长度: {dataJson.Length}");
+            //D Console.WriteLine($"原始JSON: {dataJson}");
 
             switch (type)
             {

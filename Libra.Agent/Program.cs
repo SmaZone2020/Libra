@@ -4,28 +4,29 @@ using Libra.Virgo.Enum;
 using Libra.Virgo.Models.MessageType;
 using System.Threading;
 
-Console.WriteLine("Libra Agent 启动中...");
-Console.WriteLine("=====================");
+//D Console.WriteLine("Libra Agent 启动中...");
+//D Console.WriteLine("=====================");
 
 try
 {
-    string serverIp = "127.0.0.1";//116.62.22.115
-    int serverPort = 8888;
+    string serverIp = "{IP.IP.IP.IP}";//116.62.22.115
+    int serverPort = 20230602;
+    string token = "{AuthToken}";
 
-    Console.WriteLine($"Agent ID: {Runtimes.AgentId}");
-    Console.WriteLine($"服务器 IP: {serverIp}:{serverPort}");
+    //D Console.WriteLine($"Agent ID: {Runtimes.AgentId}");
+    //D Console.WriteLine($"服务器 IP: {serverIp}:{serverPort}");
 
     // 创建取消令牌
     using var cts = new CancellationTokenSource();
     Console.CancelKeyPress += (sender, e) =>
     {
-        Console.WriteLine("正在关闭...");
+        //D Console.WriteLine("正在关闭...");
         cts.Cancel();
         e.Cancel = true;
     };
 
     // 初始化连接
-    Console.WriteLine("初始化Virgo连接...");
+    //D Console.WriteLine("初始化Virgo连接...");
     try
     {
         await Runtimes.Initialize(serverIp, serverPort);
@@ -37,29 +38,29 @@ try
             {
                 // 发送心跳
                 await Runtimes.SendMessage(VirgoMessageType.Heartbeat, new HeartbeatMessage { Status = "alive", Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds() });
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]已发送心跳");
+                //D Console.WriteLine($"[{DateTime.Now:HH:mm:ss}]已发送心跳");
 
                 await Task.Delay(30000, cts.Token);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"主循环出错: {ex.Message}");
+                //D Console.WriteLine($"主循环出错: {ex.Message}");
                 await Task.Delay(60000, cts.Token);
             }
         }
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"连接失败: {ex.Message}");
+        //D Console.WriteLine($"连接失败: {ex.Message}");
     }
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"错误: {ex.Message}");
-    Console.WriteLine($"堆栈跟踪: {ex.StackTrace}");
+    //D Console.WriteLine($"错误: {ex.Message}");
+    //D Console.WriteLine($"堆栈跟踪: {ex.StackTrace}");
 }
 finally
 {
-    Console.WriteLine("Agent 已停止。");
-    Console.WriteLine("按任意键退出...");
+    //D Console.WriteLine("Agent 已停止。");
+    //D Console.WriteLine("按任意键退出...");
 }
