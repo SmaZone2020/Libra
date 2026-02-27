@@ -83,9 +83,14 @@ public class VirgoConnection
         };
 
         string json = JsonSerializer.Serialize(envelope, VirgoJson.Options);
+        
         byte[] payload = Encoding.UTF8.GetBytes(json);
 
         byte[] length = BitConverter.GetBytes(payload.Length);
+
+        Console.WriteLine($"发送消息: {json} , {length}");
+
+
         if (BitConverter.IsLittleEndian)
             Array.Reverse(length);
 

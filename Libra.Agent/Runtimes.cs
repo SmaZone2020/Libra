@@ -66,7 +66,14 @@ namespace Libra.Agent
                             Cpu = cpuInfo,
                             Memory = memoryInfo,
                             Gpus = gpuInfo,
-                            Disks = diskInfo.Cast<object>().ToList(),
+                            Disks = diskInfo.Select(d => new Libra.Virgo.Models.DiskInfo
+                            {
+                                Label = d.Label,
+                                Name = d.Name,
+                                DriveFormat = d.DriveFormat,
+                                TotalSize = d.TotalSize,
+                                AvailableSizes = d.AvailableSizes
+                            }).ToList(),
                             IsVirtualMachine = vmInfo.IsVirtualMachine,
                             VmType = vmInfo.VmType,
                             Cameras = []

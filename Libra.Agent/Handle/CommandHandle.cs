@@ -9,12 +9,21 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Libra.Agent.Handle
 {
     internal class CommandHandle
     {
         static CommandModel Packet = new();
+        private static readonly JsonSerializerOptions AgentJsonOptions = new()
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false,
+            TypeInfoResolver = AgentJsonContext.Default
+        };
         public static async Task Handle(string dataJson)
         {
             if (string.IsNullOrEmpty(dataJson)) return;
@@ -63,7 +72,7 @@ namespace Libra.Agent.Handle
                     var sendfilesResult = await Runtimes.SendMessage(VirgoMessageType.Command, new CommandResult()
                     {
                         TaskId = Packet.TaskId,
-                        Result = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(files, VirgoJson.Options))),
+                        Result = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(files, AgentJsonOptions))),
                         EndTime = DateTime.Now
                     });
                     Console.WriteLine($"执行结果: 文件/文件夹数量 {files.Length},{sendfilesResult}");
@@ -74,7 +83,7 @@ namespace Libra.Agent.Handle
                     var senddisksResult = await Runtimes.SendMessage(VirgoMessageType.Command, new CommandResult()
                     {
                         TaskId = Packet.TaskId,
-                        Result = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(disks, VirgoJson.Options))),
+                        Result = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(disks, AgentJsonOptions))),
                         EndTime = DateTime.Now
                     });
                     Console.WriteLine($"执行结果: 磁盘数量 {disks.Count},{senddisksResult}");

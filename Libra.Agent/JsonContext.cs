@@ -1,4 +1,5 @@
-﻿using Libra.Agent.Models.Module;
+using System.Collections.Generic;
+using Libra.Agent.Models.Module;
 using Libra.Virgo.Models;
 using Libra.Virgo.Models.MessageType;
 using System.Text.Json.Serialization;
@@ -10,6 +11,9 @@ namespace Libra.Agent;
 [JsonSerializable(typeof(AgentInfo))]
 [JsonSerializable(typeof(City))]
 [JsonSerializable(typeof(Disk))]
+[JsonSerializable(typeof(List<Disk>))]
+[JsonSerializable(typeof(FileModel))]
+[JsonSerializable(typeof(FileModel[]))]
 [JsonSerializable(typeof(CommandModel))]
 public partial class AgentJsonContext : JsonSerializerContext
 {
