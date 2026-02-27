@@ -9,7 +9,7 @@ using System.Threading;
 
 try
 {
-    string serverIp = "{IP.IP.IP.IP}";//116.62.22.115
+    string serverIp = "{IP.IP.IP.IP}";
     int serverPort = 20230602;
     string token = "{AuthToken}";
 

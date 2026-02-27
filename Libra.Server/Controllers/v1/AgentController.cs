@@ -114,7 +114,7 @@ namespace Libra.Server.Controllers.v1
                     return new()
                     {
                         Code = LibraStatusCode.InternalError,
-                        Message = "构建失败",
+                        Message = "构建失败,文件不存在",
                     };
                 }
 
@@ -125,28 +125,19 @@ namespace Libra.Server.Controllers.v1
                 Directory.CreateDirectory(Path.Combine(buildPath, guid));
                 System.IO.File.Copy(filePath, outPath);
 
-                if(BinaryPatcher.ReplaceString(outPath, "{IP.IP.IP.IP}", body.Host) &&
-                   BinaryPatcher.ReplaceInt32(outPath, 20230602, body.Port) &&
-                   BinaryPatcher.ReplaceString(outPath, "{AuthToken}", body.Token))
-                {
-                    return new()
-                    {
-                        Code = LibraStatusCode.Success,
-                        Message = "构建成功",
-                        Data = new
-                        {
-                            FileName = $"{guid}.exe",
-                            Content = Convert.ToBase64String(System.IO.File.ReadAllBytes(outPath))
-                        },
-                        Timestamp = DateTime.Now.ToUnixTimestamp()
-                    };
-                }
-
+                if (BinaryPatcher.ReplaceString(outPath, "{IP.IP.IP.IP}", body.Host)) Console.WriteLine("IP替换成功");
+                if (BinaryPatcher.ReplaceInt32(outPath, 20230602, body.Port)) Console.WriteLine("端口替换成功");
+                if (BinaryPatcher.ReplaceString(outPath, "{AuthToken}", body.Token)) Console.WriteLine("Token替换成功");
 
                 return new()
                 {
                     Code = LibraStatusCode.Success,
-                    Message = "构建失败",
+                    Message = "构建成功",
+                    Data = new
+                    {
+                        FileName = $"{guid}.exe",
+                        Content = Convert.ToBase64String(System.IO.File.ReadAllBytes(outPath))
+                    },
                     Timestamp = DateTime.Now.ToUnixTimestamp()
                 };
             }
