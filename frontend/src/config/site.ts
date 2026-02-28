@@ -19,9 +19,9 @@ export const siteConfig = {
       href: "/shell",
     },
     {
-      icon: "monitor",
-      label: "监控",
-      href: "/monitor",
+      icon: "cast",
+      label: "屏幕流",
+      href: "/screen-stream",
     },
     {
       icon: "camera",

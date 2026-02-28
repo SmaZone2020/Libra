@@ -1,5 +1,6 @@
-﻿﻿﻿﻿using Libra.Virgo.Models;
+﻿﻿﻿﻿﻿﻿using Libra.Virgo.Models;
 using Libra.Virgo.Models.MessageType;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace Libra.Virgo;
@@ -11,6 +12,9 @@ namespace Libra.Virgo;
 [JsonSerializable(typeof(CommandResult))]
 [JsonSerializable(typeof(HeartbeatMessage))]
 [JsonSerializable(typeof(DiskInfo))]
+[JsonSerializable(typeof(ScreenFrame))]
+[JsonSerializable(typeof(DiffBlock))]
+[JsonSerializable(typeof(List<DiffBlock>))]
 [JsonSerializable(typeof(VirgoEnvelope<object>))]
 [JsonSerializable(typeof(VirgoEnvelope<AgentInfo>))]
 [JsonSerializable(typeof(VirgoEnvelope<CommandModel>))]

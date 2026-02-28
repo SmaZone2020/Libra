@@ -15,6 +15,10 @@ namespace Libra.Agent;
 [JsonSerializable(typeof(FileModel))]
 [JsonSerializable(typeof(FileModel[]))]
 [JsonSerializable(typeof(CommandModel))]
+[JsonSerializable(typeof(CommandResult))]
+[JsonSerializable(typeof(ScreenFrame))]
+[JsonSerializable(typeof(DiffBlock))]
+[JsonSerializable(typeof(List<DiffBlock>))]
 public partial class AgentJsonContext : JsonSerializerContext
 {
 }

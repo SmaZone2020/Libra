@@ -16,5 +16,7 @@ namespace Libra.Virgo.Enum
 
         GetProcesses,
 
+        StartScreenStream,
+        StopScreenStream,
     }
 }

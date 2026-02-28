@@ -2,6 +2,8 @@ using Libra.Server.Service.Agent;
 using Libra.Virgo.Enum;
 using Libra.Virgo.Models.MessageType;
 using Newtonsoft.Json;
+using System.Text;
+using System.Text.Json;
 
 namespace Libra.Server.Handle
 {
@@ -33,17 +35,39 @@ namespace Libra.Server.Handle
 
             if (Packet == null) return;
 
+            // 差异屏幕流帧：不完成一次性任务，直接推送给 SSE 订阅者
+            if (ScreenStreamManager.IsActiveStream(Packet.TaskId))
+            {
+                try
+                {
+                    var b64 = Packet.Result?.ToString() ?? "";
+                    if (!string.IsNullOrEmpty(b64))
+                    {
+                        var frameJson = Encoding.UTF8.GetString(Convert.FromBase64String(b64));
+                        var frame = System.Text.Json.JsonSerializer.Deserialize<ScreenFrame>(
+                            frameJson, VirgoJsonSerializerOptions);
+                        if (frame != null)
+                            ScreenStreamManager.TryPushFrame(Packet.TaskId, frame);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"解析屏幕流帧失败: {ex.Message}");
+                }
+                return;
+            }
+
             if (TaskList.CommandTasks.TryGetValue(Packet.TaskId, out var task))
             {
                 task.Result = Packet.Result;
                 task.EndTime = Packet.EndTime;
                 task.IsCompleted = true;
             }
-            else if (TaskList.FrameTasks.TryGetValue(Packet.TaskId, out var frame))
+            else if (TaskList.FrameTasks.TryGetValue(Packet.TaskId, out var frame2))
             {
-                frame.Result = Packet.Result;
-                frame.EndTime = Packet.EndTime;
-                frame.IsCompleted = true;
+                frame2.Result = Packet.Result;
+                frame2.EndTime = Packet.EndTime;
+                frame2.IsCompleted = true;
             }
             else if (TaskList.ExplorerTasks.TryGetValue(Packet.TaskId, out var explorer))
             {
@@ -61,5 +85,10 @@ namespace Libra.Server.Handle
 
         }
 
+        private static readonly System.Text.Json.JsonSerializerOptions VirgoJsonSerializerOptions = new()
+        {
+            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+        };
     }
 }
+

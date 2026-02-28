@@ -65,3 +65,22 @@ export interface AgentStats {
   streamHour: Record<string, number> ;
   streamHourOutput: Record<string, number> ;
 }
+
+// 差异屏幕流类型
+export interface DiffBlock {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  data: string; // base64 JPEG
+}
+
+export interface ScreenFrame {
+  streamId: string;
+  isFull: boolean;
+  screenWidth: number;
+  screenHeight: number;
+  data?: string;        // base64 JPEG，isFull=true 时有值
+  blocks?: DiffBlock[]; // 变化区块，isFull=false 时有值
+}
+

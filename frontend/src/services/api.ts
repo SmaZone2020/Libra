@@ -1,4 +1,4 @@
-import { ApiResponse, Agent, AgentStats } from '../types';
+import { ApiResponse, Agent, AgentStats, ScreenFrame } from '../types';
 
 // 基础API请求函数
 async function apiRequest<T>(
@@ -196,6 +196,75 @@ export const explorerApi = {
         },
       }
     );
+  },
+};
+
+// 差异屏幕 SSE 流
+// 由于标准 EventSource 不支持自定义请求头，使用 fetch + ReadableStream 实现
+export const screenStreamApi = {
+  /**
+   * 建立 SSE 流连接，返回用于断开的 close 函数
+   * @param quality  画质：native | 1080p | 720p | 540p | 370p
+   * @param onFrame  每收到一帧时调用
+   * @param onError  连接异常时调用
+   */
+  createStream: (
+    baseUrl: string,
+    token: string,
+    agentId: string,
+    quality: string,
+    onFrame: (frame: ScreenFrame) => void,
+    onError: (msg: string) => void
+  ): (() => void) => {
+    const controller = new AbortController();
+
+    const run = async () => {
+      try {
+        const url = `${baseUrl.replace(/\/$/, '')}/api/v1/monitor/stream/${agentId}?quality=${encodeURIComponent(quality)}`;
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        });
+
+        if (!res.ok || !res.body) {
+          onError(`连接失败: HTTP ${res.status}`);
+          return;
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+
+          // SSE 事件以 \n\n 为分隔符
+          const events = buffer.split('\n\n');
+          buffer = events.pop() ?? '';
+
+          for (const event of events) {
+            const dataLine = event.split('\n').find(l => l.startsWith('data: '));
+            if (!dataLine) continue;
+            try {
+              const frame: ScreenFrame = JSON.parse(dataLine.slice(6));
+              onFrame(frame);
+            } catch {
+              // 忽略单帧解析错误
+            }
+          }
+        }
+      } catch (e) {
+        if ((e as Error).name !== 'AbortError') {
+          onError(`流中断: ${(e as Error).message}`);
+        }
+      }
+    };
+
+    run();
+    return () => controller.abort();
   },
 };
 

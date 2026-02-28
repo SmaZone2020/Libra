@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace Libra.Server.Controllers.v1
 {
@@ -20,6 +21,12 @@ namespace Libra.Server.Controllers.v1
     public class MonitorController(ILogger<MonitorController> logger) : ControllerBase
     {
         private readonly ILogger<MonitorController> _logger = logger;
+
+        private static readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
+        };
 
         [HttpGet("frame/{agentId}")]
         public async Task<ApiResponse<object>> GetFrame(string agentId)
@@ -171,5 +178,52 @@ namespace Libra.Server.Controllers.v1
                 };
             }
         }
+
+        /// <summary>
+        /// SSE 差异屏幕流。首个订阅者自动触发 Agent 开始推流，全部断开后自动停止。
+        /// quality 可选：native | 1080p | 720p（默认）| 540p | 370p
+        /// 数据格式：text/event-stream，每帧一条 data: {...}\n\n
+        /// isFull=true → data 字段为完整 base64 JPEG；isFull=false → blocks 字段为变化区块列表
+        /// </summary>
+        [HttpGet("stream/{agentId}")]
+        public async Task StreamScreen(
+            string agentId,
+            [FromQuery] string quality = "720p",
+            CancellationToken ct = default)
+        {
+            Guid aid;
+            if (!Guid.TryParse(agentId, out aid))
+            {
+                Response.StatusCode = 400;
+                return;
+            }
+
+            // 只允许合法的 quality 值
+            if (!new[] { "native", "1080p", "720p", "540p", "370p" }.Contains(quality))
+                quality = "720p";
+
+            Response.Headers["Content-Type"] = "text/event-stream; charset=utf-8";
+            Response.Headers["Cache-Control"] = "no-cache";
+            Response.Headers["X-Accel-Buffering"] = "no";
+            Response.Headers["Connection"] = "keep-alive";
+
+            var (_, channel) = await ScreenStreamManager.SubscribeAsync(aid, quality);
+            try
+            {
+                await foreach (var frame in channel.Reader.ReadAllAsync(ct))
+                {
+                    var json = JsonSerializer.Serialize(frame, _jsonOptions);
+                    var line = $"data: {json}\n\n";
+                    await Response.WriteAsync(line, ct);
+                    await Response.Body.FlushAsync(ct);
+                }
+            }
+            catch (OperationCanceledException) { /* 客户端断开 */ }
+            finally
+            {
+                await ScreenStreamManager.UnsubscribeAsync(aid, quality, channel);
+            }
+        }
     }
 }
+

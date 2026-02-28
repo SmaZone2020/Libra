@@ -18,7 +18,7 @@ Console.WriteLine("#Debug =====================");
 
 try
 {
-    string serverIp = "116.62.22.115";
+    string serverIp = "127.0.0.1";//116.62.22.115
     int serverPort = 8888;
     string token = "{AuthToken}";
 

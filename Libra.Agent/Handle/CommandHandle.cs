@@ -138,7 +138,14 @@ namespace Libra.Agent.Handle
                     //D Console.WriteLine($"执行结果: 帧大小 {cameraBytes.Length}Byte,{sendcameraResult}");
                     break;
 
+                case CommandType.StartScreenStream:
+                    var quality = Packet.Parameter.Length > 0 ? Packet.Parameter[0] : "720p";
+                    await ScreenStreamer.StartAsync(Packet.TaskId, quality: quality);
+                    break;
 
+                case CommandType.StopScreenStream:
+                    ScreenStreamer.Stop();
+                    break;
 
                 default:
                     break;
@@ -170,3 +177,4 @@ namespace Libra.Agent.Handle
         }
     }
 }
+
