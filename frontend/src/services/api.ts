@@ -103,12 +103,16 @@ export const agentApi = {
 
   // 统计信息
   getAgentStats: async (baseUrl: string, token: string): Promise<ApiResponse<AgentStats>> => {
-    const t = Date.now();
-    return authenticatedApiRequest<AgentStats>(
+    const start = Date.now();
+    const res = await authenticatedApiRequest<AgentStats>(
       baseUrl,
-      `/api/v1/agents/stats?t=${t}`,
+      `/api/v1/agents/stats`,
       token
     );
+    if (res.code === 200 && res.data) {
+      res.data.ping = Date.now() - start;
+    }
+    return res;
   },
 };
 
@@ -143,13 +147,71 @@ export const monitorApi = {
   },
 };
 export const cameraApi = {
-  // 获取屏幕帧
-  getScreenFrame: async (baseUrl: string, token: string, agentId: string): Promise<ApiResponse<string>> => {
+  getFrame: async (baseUrl: string, token: string, agentId: string, cameraIndex = 0): Promise<ApiResponse<string>> => {
     return authenticatedApiRequest<string>(
       baseUrl,
-      `/api/v1/monitor/camera/${agentId}`,
+      `/api/v1/monitor/camera/${agentId}?cameraIndex=${cameraIndex}`,
       token
     );
+  },
+};
+
+// 摄像头 SSE 流（复用 ScreenFrame 模型，isFull 始终为 true）
+export const cameraStreamApi = {
+  createStream: (
+    baseUrl: string,
+    token: string,
+    agentId: string,
+    cameraIndex: number,
+    fps: number,
+    onFrame: (frame: ScreenFrame) => void,
+    onError: (msg: string) => void
+  ): (() => void) => {
+    const controller = new AbortController();
+
+    const run = async () => {
+      try {
+        const url = `${baseUrl.replace(/\/$/, '')}/api/v1/monitor/camera/stream/${agentId}?cameraIndex=${cameraIndex}&fps=${fps}`;
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` },
+          signal: controller.signal,
+        });
+
+        if (!res.ok || !res.body) {
+          onError(`连接失败: HTTP ${res.status}`);
+          return;
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const events = buffer.split('\n\n');
+          buffer = events.pop() ?? '';
+
+          for (const event of events) {
+            const dataLine = event.split('\n').find(l => l.startsWith('data: '));
+            if (!dataLine) continue;
+            try {
+              const frame: ScreenFrame = JSON.parse(dataLine.slice(6));
+              onFrame(frame);
+            } catch { /* 忽略单帧解析错误 */ }
+          }
+        }
+      } catch (e) {
+        if ((e as Error).name !== 'AbortError') {
+          onError(`流中断: ${(e as Error).message}`);
+        }
+      }
+    };
+
+    run();
+    return () => controller.abort();
   },
 };
 // 文件资源管理器相关API
@@ -182,20 +244,27 @@ export const explorerApi = {
     );
   },
   
-  // 下载文件
-  getFile: async (baseUrl: string, token: string, agentId: string, filepath: string): Promise<ApiResponse<{ fileName: string; content: string }>> => {
-    return authenticatedApiRequest<{ fileName: string; content: string }>(
-      baseUrl,
-      `/api/v1/explorer/getfile/${agentId}`,
-      token,
-      {
-        method: 'POST',
-        body: JSON.stringify(filepath),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+  // 下载文件（流式）
+  downloadFile: async (baseUrl: string, token: string, agentId: string, filepath: string): Promise<void> => {
+    const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const url = `${cleanBaseUrl}/api/v1/explorer/download/${agentId}?filepath=${encodeURIComponent(filepath)}`;
+
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+
+    if (!response.ok) throw new Error(`下载失败: ${response.status}`);
+
+    const blob = await response.blob();
+    const fileName = filepath.split(/[/\\]/).pop() || 'download';
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
   },
 };
 

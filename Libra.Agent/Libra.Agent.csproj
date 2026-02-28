@@ -9,6 +9,8 @@
     <InvariantGlobalization>true</InvariantGlobalization>
 	  
 	<UseSystemTextJsonSourceGenerator>true</UseSystemTextJsonSourceGenerator>
+	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="FlashCap" Version="1.11.0" />
     <PackageReference Include="System.Drawing.Common" Version="10.0.3" />
     <PackageReference Include="System.Management" Version="10.0.3" />
   </ItemGroup>

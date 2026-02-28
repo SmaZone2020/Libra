@@ -18,5 +18,10 @@ namespace Libra.Virgo.Enum
 
         StartScreenStream,
         StopScreenStream,
+
+        StartCameraStream,
+        StopCameraStream,
+
+        ReadFileStream,
     }
 }

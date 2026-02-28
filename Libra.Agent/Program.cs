@@ -3,6 +3,7 @@ using Libra.Agent.Helper;
 using Libra.Virgo.Enum;
 using Libra.Virgo.Models.MessageType;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 if(!VirtualCheck.HasPhysicalDisplay() ||

@@ -21,6 +21,7 @@ export interface AgentHardware {
     availableSizes: number;
   }[];
   isVirtualMachine: boolean;
+  cameras?: string[];
 }
 
 export interface Agent {

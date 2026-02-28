@@ -105,7 +105,7 @@ namespace Libra.Server.Controllers.v1
 
 
         [HttpGet("camera/{agentId}")]
-        public async Task<ApiResponse<object>> GetCameraFrame(string agentId)
+        public async Task<ApiResponse<object>> GetCameraFrame(string agentId, [FromQuery] int cameraIndex = 0)
         {
             try
             {
@@ -132,6 +132,7 @@ namespace Libra.Server.Controllers.v1
                 {
                     TaskId = tid,
                     Type = CommandType.GetCameraFrame,
+                    Parameter = [$"{cameraIndex}"]
                 });
 
                 for (int i = 0; i < 3; i++)
@@ -148,16 +149,10 @@ namespace Libra.Server.Controllers.v1
                     }
                     if (task.IsCompleted) break;
 
-                    task.Result = Encoding.UTF8.GetString(Convert.FromBase64String(task.Result.ToString()));
-
-
-                    Console.WriteLine($"轮询结果第{i}次");
-
                     await Task.Delay(500);
                 }
 
                 TaskList.CameraFrameTasks.Remove(tid);
-                Console.WriteLine(task.Result.ToString().Length);
                 return new()
                 {
                     Code = LibraStatusCode.Success,
@@ -168,14 +163,59 @@ namespace Libra.Server.Controllers.v1
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "获取帧失败");
+                _logger.LogError(ex, "获取摄像头帧失败");
                 return new()
                 {
                     Code = LibraStatusCode.InternalError,
-                    Message = "获取帧失败",
+                    Message = "获取摄像头帧失败",
                     Data = ex.Message,
                     Timestamp = DateTime.Now.ToUnixTimestamp()
                 };
+            }
+        }
+
+        /// <summary>
+        /// SSE 摄像头流。首个订阅者自动触发 Agent 开始推流，全部断开后自动停止。
+        /// cameraIndex: 摄像头索引（默认 0）
+        /// fps: 帧率（默认 10）
+        /// 数据格式：text/event-stream，每帧一条 data: {...}\n\n
+        /// isFull=true，data 字段为 base64 JPEG
+        /// </summary>
+        [HttpGet("camera/stream/{agentId}")]
+        public async Task StreamCamera(
+            string agentId,
+            [FromQuery] int cameraIndex = 0,
+            [FromQuery] int fps = 10,
+            CancellationToken ct = default)
+        {
+            if (!Guid.TryParse(agentId, out var aid))
+            {
+                Response.StatusCode = 400;
+                return;
+            }
+
+            fps = Math.Clamp(fps, 1, 30);
+
+            Response.Headers["Content-Type"] = "text/event-stream; charset=utf-8";
+            Response.Headers["Cache-Control"] = "no-cache";
+            Response.Headers["X-Accel-Buffering"] = "no";
+            Response.Headers["Connection"] = "keep-alive";
+
+            var (_, channel) = await CameraStreamManager.SubscribeAsync(aid, cameraIndex, fps);
+            try
+            {
+                await foreach (var frame in channel.Reader.ReadAllAsync(ct))
+                {
+                    var json = JsonSerializer.Serialize(frame, _jsonOptions);
+                    var line = $"data: {json}\n\n";
+                    await Response.WriteAsync(line, ct);
+                    await Response.Body.FlushAsync(ct);
+                }
+            }
+            catch (OperationCanceledException) { /* 客户端断开 */ }
+            finally
+            {
+                await CameraStreamManager.UnsubscribeAsync(aid, cameraIndex, channel);
             }
         }
 

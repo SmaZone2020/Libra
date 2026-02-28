@@ -159,44 +159,15 @@ function Explorer() {
   };
 
   const handleDownloadFile = async (fileName: string) => {
-    console.log(!token || !selectedAgent)
     if (!token || !selectedAgent) return;
-    
+
     setLoading(true);
     setError('');
 
     try {
       const fullPath = `${currentPath}${fileName}`;
       const baseUrl = localStorage.getItem("libra-base-url") || "http://localhost:5114";
-      const response = await explorerApi.getFile(baseUrl, token, selectedAgent, fullPath);
-
-      if (response.code === 200 && response.data && response.data.content) {
-        // 处理Base64内容并下载
-        const content = response.data.content;
-        const fileName = response.data.fileName;
-
-        // 解码Base64内容
-        const binaryString = atob(content);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-
-        // 创建Blob对象
-        const blob = new Blob([bytes], { type: 'application/octet-stream' });
-        const url = URL.createObjectURL(blob);
-
-        // 创建下载链接并触发下载
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      } else {
-        setError('文件不存在或为空');
-      }
+      await explorerApi.downloadFile(baseUrl, token, selectedAgent, fullPath);
     } catch (err: any) {
       setError(err.message || '下载文件失败');
     } finally {
@@ -323,7 +294,7 @@ function Explorer() {
                   {!showDisks && currentPath && (
                     <Card 
                       key="parent" 
-                      className="p-4 cursor-pointer hover:bg-gray-50" 
+                      className="p-4 cursor-pointer hover:bg-gray-50 hover:dark:bg-gray-500/20" 
                       onClick={() => navigateToFolder('..')}
                     >
                       <div className="flex flex-col items-center text-center">
@@ -337,7 +308,7 @@ function Explorer() {
                   {files.map((file) => (
                     <Card 
                       key={file.fileName} 
-                      className="p-4 cursor-pointer hover:bg-gray-50" 
+                      className="p-4 cursor-pointer hover:bg-gray-50 hover:dark:bg-gray-500/20" 
                       onClick={file.isFolder ? () => navigateToFolder(file.fileName) : () => handleDownloadFile(file.fileName)}
                     >
                       <div className="flex flex-col items-center text-center">

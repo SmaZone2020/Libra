@@ -53,6 +53,7 @@ namespace Libra.Agent
                 var isIdle = Libra.Agent.Models.InfoHelper.MouseTracker.IsIdle();
                 var uacStatus = Libra.Agent.Models.InfoHelper.GetUacStatus();
                 var vmInfo = Libra.Agent.Models.InfoHelper.GetVirtualMachineInfo();
+                var cameras = Libra.Agent.Helper.CameraHelper.GetCameraNames();
 
                 var agentInfo = new AgentInfo
                 {
@@ -92,7 +93,7 @@ namespace Libra.Agent
                         }).ToList(),
                         IsVirtualMachine = vmInfo.IsVirtualMachine,
                         VmType = vmInfo.VmType,
-                        Cameras = []
+                        Cameras = cameras
                     }
                 };
 

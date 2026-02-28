@@ -251,5 +251,50 @@ namespace Libra.Server.Controllers.v1
                 };
             }
         }
+
+        [HttpGet("download/{agentId}")]
+        public async Task DownloadFile(string agentId, [FromQuery] string filepath)
+        {
+            var aid = Guid.Parse(agentId);
+            var tid = Guid.NewGuid();
+            var channel = FileDownloadManager.Register(tid);
+
+            try
+            {
+                await Runtimes.SendMessageToAgent(aid, VirgoMessageType.Command, new CommandModel
+                {
+                    TaskId = tid,
+                    Type = CommandType.ReadFileStream,
+                    Parameter = [filepath]
+                });
+
+                var fileName = Path.GetFileName(filepath);
+                Response.ContentType = "application/octet-stream";
+                Response.Headers["Content-Disposition"] = $"attachment; filename=\"{Uri.EscapeDataString(fileName)}\"";
+
+                using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+                using var linked = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, HttpContext.RequestAborted);
+
+                await foreach (var chunk in channel.Reader.ReadAllAsync(linked.Token))
+                {
+                    if (chunk == null || chunk.Length == 0) break;
+                    await Response.Body.WriteAsync(chunk, linked.Token);
+                    await Response.Body.FlushAsync(linked.Token);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                FileDownloadManager.Cancel(tid);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "文件下载失败");
+                FileDownloadManager.Cancel(tid);
+                if (!Response.HasStarted)
+                {
+                    Response.StatusCode = 500;
+                }
+            }
+        }
     }
 }

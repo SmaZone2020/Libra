@@ -35,6 +35,28 @@ namespace Libra.Server.Handle
 
             if (Packet == null) return;
 
+            // 摄像头流帧：推送给 SSE 订阅者
+            if (CameraStreamManager.IsActiveStream(Packet.TaskId))
+            {
+                try
+                {
+                    var b64 = Packet.Result?.ToString() ?? "";
+                    if (!string.IsNullOrEmpty(b64))
+                    {
+                        var frameJson = Encoding.UTF8.GetString(Convert.FromBase64String(b64));
+                        var frame = System.Text.Json.JsonSerializer.Deserialize<ScreenFrame>(
+                            frameJson, VirgoJsonSerializerOptions);
+                        if (frame != null)
+                            CameraStreamManager.TryPushFrame(Packet.TaskId, frame);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"解析摄像头流帧失败: {ex.Message}");
+                }
+                return;
+            }
+
             // 差异屏幕流帧：不完成一次性任务，直接推送给 SSE 订阅者
             if (ScreenStreamManager.IsActiveStream(Packet.TaskId))
             {
@@ -54,6 +76,17 @@ namespace Libra.Server.Handle
                 {
                     Console.WriteLine($"解析屏幕流帧失败: {ex.Message}");
                 }
+                return;
+            }
+
+            // 文件下载流：推送块数据给下载 channel
+            if (FileDownloadManager.IsActive(Packet.TaskId))
+            {
+                var b64 = Packet.Result?.ToString() ?? "";
+                if (string.IsNullOrEmpty(b64))
+                    FileDownloadManager.Complete(Packet.TaskId);
+                else
+                    FileDownloadManager.PushChunk(Packet.TaskId, Convert.FromBase64String(b64));
                 return;
             }
 

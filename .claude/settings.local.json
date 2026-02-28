@@ -2,7 +2,20 @@
   "permissions": {
     "allow": [
       "Bash(dotnet build:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet remove:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl:*)",
+      "Bash(dir C:\\\\Program Files \\(x86\\)\\\\Windows Kits:*)",
+      "WebFetch(domain:microsoft.github.io)",
+      "Bash(gh api:*)",
+      "WebFetch(domain:dev.to)",
+      "WebFetch(domain:www.nuget.org)",
+      "Bash(dotnet:*)",
+      "Bash(python:*)"
     ]
   }
 }

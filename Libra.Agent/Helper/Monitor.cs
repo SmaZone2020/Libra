@@ -48,8 +48,7 @@ namespace Libra.Agent.Helper
             int height = 720,
             long jpegQuality = 60)
         {
-
-            return [];
+            return CameraHelper.CaptureFrame(cameraIndex, jpegQuality);
         }
 
         /// <summary>
