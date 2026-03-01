@@ -26,7 +26,7 @@ namespace Libra.Agent.Helper
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"CameraHelper.GetCameraNames error: {ex.Message}");
+                //D Console.WriteLine($"CameraHelper.GetCameraNames error: {ex.Message}");
                 return [];
             }
         }
@@ -85,7 +85,7 @@ namespace Libra.Agent.Helper
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"CameraHelper.CaptureFrame error: {ex.Message}");
+                //D Console.WriteLine($"CameraHelper.CaptureFrame error: {ex.Message}");
                 return null;
             }
         }

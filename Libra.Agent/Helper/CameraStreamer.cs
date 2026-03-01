@@ -55,14 +55,14 @@ namespace Libra.Agent.Helper
                 var descriptor = CameraHelper.GetDescriptor(stream.CameraIndex);
                 if (descriptor == null)
                 {
-                    Console.WriteLine($"CameraStreamer[{stream.CameraIndex}]: device not found");
+                    //D Console.WriteLine($"CameraStreamer[{stream.CameraIndex}]: device not found");
                     return;
                 }
 
                 var chars = CameraHelper.ChooseCharacteristics(descriptor, targetFps);
                 if (chars == null)
                 {
-                    Console.WriteLine($"CameraStreamer[{stream.CameraIndex}]: no suitable format");
+                    //D Console.WriteLine($"CameraStreamer[{stream.CameraIndex}]: no suitable format");
                     return;
                 }
 
@@ -77,7 +77,7 @@ namespace Libra.Agent.Helper
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"CameraStreamer[{stream.CameraIndex}] start error: {ex.Message}");
+                //D Console.WriteLine($"CameraStreamer[{stream.CameraIndex}] start error: {ex.Message}");
             }
         }
 
@@ -109,7 +109,7 @@ namespace Libra.Agent.Helper
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"CameraStreamer[{stream.CameraIndex}] frame error: {ex.Message}");
+                //D Console.WriteLine($"CameraStreamer[{stream.CameraIndex}] frame error: {ex.Message}");
             }
         }
 

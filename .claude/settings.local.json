@@ -15,7 +15,8 @@
       "WebFetch(domain:dev.to)",
       "WebFetch(domain:www.nuget.org)",
       "Bash(dotnet:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(ilspycmd:*)"
     ]
   }
 }

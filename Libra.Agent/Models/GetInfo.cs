@@ -51,7 +51,7 @@ namespace Libra.Agent.Models
             {
                 var qqList = new List<string>();
                 var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Tencent Files");
-                //D Console.WriteLine($"{path}");
+                //D //D Console.WriteLine($"{path}");
 
                 var qqDirs = Directory.GetDirectories(path);
 

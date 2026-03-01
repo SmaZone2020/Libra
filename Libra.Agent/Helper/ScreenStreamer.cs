@@ -84,7 +84,7 @@ namespace Libra.Agent.Helper
                 catch (OperationCanceledException) { break; }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"ScreenStreamer 错误: {ex.Message}");
+                    //D Console.WriteLine($"ScreenStreamer 错误: {ex.Message}");
                     await Task.Delay(1000, ct);
                     continue;
                 }

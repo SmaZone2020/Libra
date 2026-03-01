@@ -38,7 +38,7 @@ namespace Libra.Agent
 
                     VirgoClient.MessageReceived += async (dataJson, type) =>
                     {
-                        Console.WriteLine($"#Debug 收到服务器消息: {type}");
+                        //D Console.WriteLine($"#Debug 收到服务器消息: {type}");
                         await MainHandle.Handle(dataJson, type);
                     };
                 }
@@ -98,10 +98,10 @@ namespace Libra.Agent
                 };
 
                 await VirgoClient.ConnectAsync(_serverIp, _serverPort, agentInfo, CancellationToken.None);
-                Console.WriteLine($"#Debug 连接成功并注册完成");
+                //D Console.WriteLine($"#Debug 连接成功并注册完成");
             }catch(Exception ex)
             {
-                Console.WriteLine($"#Debug 注册时出错: {ex.Message}");
+                //D Console.WriteLine($"#Debug 注册时出错: {ex.Message}");
             }finally
             {
                 _isReconnecting = false;
@@ -123,7 +123,7 @@ namespace Libra.Agent
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"#Debug 发送消息出错: {ex.Message}");
+                //D Console.WriteLine($"#Debug 发送消息出错: {ex.Message}");
                 // 尝试重新连接
                 await TryConnect();
                 return false;
