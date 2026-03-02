@@ -9,15 +9,11 @@ using System.Threading.Tasks;
 namespace Libra.Server.Service.Agent
 {
     /// <summary>
-    /// 管理 Agent 差异屏幕流的 SSE 订阅。
-    /// 以 (agentId, quality) 为 key，不同清晰度互相独立。
+    /// 管理屏幕流的 SSE 订阅，按 (agentId, quality) 隔离
     /// </summary>
     public static class ScreenStreamManager
     {
-        // (agentId, quality) → streamId
         private static readonly ConcurrentDictionary<(Guid, string), Guid> _agentStreams = new();
-
-        // streamId → 流状态
         private static readonly ConcurrentDictionary<Guid, StreamState> _streams = new();
 
         private sealed class StreamState
@@ -25,13 +21,13 @@ namespace Libra.Server.Service.Agent
             private readonly object _lock = new();
             private readonly List<Channel<ScreenFrame>> _channels = [];
 
-            /// <summary>添加订阅者，返回是否是第一个订阅者</summary>
+            /// <summary>添加订阅者，返回是否首个</summary>
             public bool Add(Channel<ScreenFrame> ch)
             {
                 lock (_lock) { _channels.Add(ch); return _channels.Count == 1; }
             }
 
-            /// <summary>移除订阅者，返回是否已无任何订阅者</summary>
+            /// <summary>移除订阅者，返回是否已空</summary>
             public bool Remove(Channel<ScreenFrame> ch)
             {
                 lock (_lock)
@@ -53,7 +49,7 @@ namespace Libra.Server.Service.Agent
         }
 
         /// <summary>
-        /// SSE 端点订阅。首个订阅者向 Agent 发送 StartScreenStream（含 quality）。
+        /// 订阅屏幕流，首个订阅者触发 Agent 推流
         /// </summary>
         public static async Task<(Guid StreamId, Channel<ScreenFrame> Channel)> SubscribeAsync(
             Guid agentId, string quality)
@@ -82,7 +78,7 @@ namespace Libra.Server.Service.Agent
         }
 
         /// <summary>
-        /// SSE 连接断开时取消订阅；最后一个订阅者离开则通知 Agent 停止。
+        /// 取消订阅，最后一个离开时通知 Agent 停止
         /// </summary>
         public static async Task UnsubscribeAsync(
             Guid agentId, string quality, Channel<ScreenFrame> channel)
@@ -105,7 +101,7 @@ namespace Libra.Server.Service.Agent
             }
         }
 
-        /// <summary>将来自 Agent 的帧推送给所有订阅者</summary>
+        /// <summary>推送帧给所有订阅者</summary>
         public static bool TryPushFrame(Guid streamId, ScreenFrame frame)
         {
             if (_streams.TryGetValue(streamId, out var state))

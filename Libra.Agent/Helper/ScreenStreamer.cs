@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Libra.Agent.Helper
 {
     /// <summary>
-    /// 差异屏幕流，持续捕获并只发送变化区块
+    /// 持续捕获屏幕并只发送变化的区块
     /// </summary>
     internal static class ScreenStreamer
     {
@@ -24,7 +24,6 @@ namespace Libra.Agent.Helper
             await _gate.WaitAsync();
             try
             {
-                // 停止旧流（如果有）
                 _cts?.Cancel();
                 _cts?.Dispose();
 
@@ -64,7 +63,7 @@ namespace Libra.Agent.Helper
                     prevWidth = frame.ScreenWidth;
                     prevHeight = frame.ScreenHeight;
 
-                    // 无变化时跳过发送
+                    // 无变化跳过
                     if (!frame.IsFull && (frame.Blocks == null || frame.Blocks.Count == 0))
                     {
                         sw.Stop();
@@ -82,9 +81,8 @@ namespace Libra.Agent.Helper
                     });
                 }
                 catch (OperationCanceledException) { break; }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    //D Console.WriteLine($"ScreenStreamer 错误: {ex.Message}");
                     await Task.Delay(1000, ct);
                     continue;
                 }

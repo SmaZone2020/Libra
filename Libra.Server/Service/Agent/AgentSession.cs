@@ -25,27 +25,17 @@ namespace Libra.Server.Service.Agent
         public DateTime LastMouseActivity => _lastMouseActivity;
         public bool IsConnected => _connection != null;
 
-        /// <summary>
-        /// 发送消息给 Agent
-        /// </summary>
-        /// <param name="message">要发送的消息内容</param>
-        /// <returns>是否发送成功</returns>
         public async Task<bool> SendMessageAsync(VirgoMessageType type, object data)
         {
-            if (!IsConnected)
-            {
-                return false;
-            }
+            if (!IsConnected) return false;
 
             try
             {
                 await _connection.SendAsync(data, type, CancellationToken.None);
-                
                 return true;
             }
-            catch (Exception ex)
+            catch
             {
-                Console.WriteLine($"发送消息给 Agent {AgentId} 时出错: {ex.Message}");
                 return false;
             }
         }
@@ -105,10 +95,6 @@ namespace Libra.Server.Service.Agent
         {
             if ((DateTime.Now - _lastHeartbeat).TotalSeconds > 120)
             {
-                // 心跳超时，处理断开连接
-                Console.WriteLine($"Agent {AgentId} 心跳超时 {(DateTime.Now - _lastHeartbeat).TotalSeconds}s");
-                //Stop();
-                //Disconnected?.Invoke(this, new AgentSessionEventArgs { AgentId = AgentId });
             }
         }
 

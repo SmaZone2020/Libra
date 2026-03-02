@@ -74,14 +74,10 @@ namespace Libra.Server.Controllers.v1
 
                     task.Result = Encoding.UTF8.GetString(Convert.FromBase64String(task.Result.ToString()));
 
-
-                    Console.WriteLine($"轮询结果第{i}次");
-
                     await Task.Delay(500);
                 }
 
                 TaskList.FrameTasks.Remove(tid);
-                Console.WriteLine(task.Result.ToString().Length);
                 return new()
                 {
                     Code = LibraStatusCode.Success,
@@ -175,11 +171,7 @@ namespace Libra.Server.Controllers.v1
         }
 
         /// <summary>
-        /// SSE 摄像头流。首个订阅者自动触发 Agent 开始推流，全部断开后自动停止。
-        /// cameraIndex: 摄像头索引（默认 0）
-        /// fps: 帧率（默认 10）
-        /// 数据格式：text/event-stream，每帧一条 data: {...}\n\n
-        /// isFull=true，data 字段为 base64 JPEG
+        /// 摄像头 SSE 流，首个订阅者触发 Agent 推流，全部断开后自动停止
         /// </summary>
         [HttpGet("camera/stream/{agentId}")]
         public async Task StreamCamera(
@@ -212,7 +204,7 @@ namespace Libra.Server.Controllers.v1
                     await Response.Body.FlushAsync(ct);
                 }
             }
-            catch (OperationCanceledException) { /* 客户端断开 */ }
+            catch (OperationCanceledException) { }
             finally
             {
                 await CameraStreamManager.UnsubscribeAsync(aid, cameraIndex, channel);
@@ -220,10 +212,7 @@ namespace Libra.Server.Controllers.v1
         }
 
         /// <summary>
-        /// SSE 差异屏幕流。首个订阅者自动触发 Agent 开始推流，全部断开后自动停止。
-        /// quality 可选：native | 1080p | 720p（默认）| 540p | 370p
-        /// 数据格式：text/event-stream，每帧一条 data: {...}\n\n
-        /// isFull=true → data 字段为完整 base64 JPEG；isFull=false → blocks 字段为变化区块列表
+        /// 屏幕差异帧 SSE 流，首个订阅者触发 Agent 推流，全部断开后自动停止
         /// </summary>
         [HttpGet("stream/{agentId}")]
         public async Task StreamScreen(
@@ -238,7 +227,6 @@ namespace Libra.Server.Controllers.v1
                 return;
             }
 
-            // 只允许合法的 quality 值
             if (!new[] { "native", "1080p", "720p", "540p", "370p" }.Contains(quality))
                 quality = "720p";
 
@@ -258,7 +246,7 @@ namespace Libra.Server.Controllers.v1
                     await Response.Body.FlushAsync(ct);
                 }
             }
-            catch (OperationCanceledException) { /* 客户端断开 */ }
+            catch (OperationCanceledException) { }
             finally
             {
                 await ScreenStreamManager.UnsubscribeAsync(aid, quality, channel);

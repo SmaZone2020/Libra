@@ -45,7 +45,6 @@ namespace Libra.Agent.Helper
             }
             catch
             {
-                // 忽略异常
             }
 
             return false;

@@ -51,7 +51,6 @@ namespace Libra.Agent.Models
             {
                 var qqList = new List<string>();
                 var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Tencent Files");
-                //D //D Console.WriteLine($"{path}");
 
                 var qqDirs = Directory.GetDirectories(path);
 
@@ -219,7 +218,6 @@ namespace Libra.Agent.Models
         {
             try
             {
-                // 使用PowerShell获取CPU名称
                 var psi = new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
@@ -248,7 +246,6 @@ namespace Libra.Agent.Models
         {
             try
             {
-                // 使用PowerShell获取CPU频率
                 var psi = new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
@@ -281,7 +278,6 @@ namespace Libra.Agent.Models
         {
             try
             {
-                // 使用Environment.Is64BitOperatingSystem判断架构
                 if (Environment.Is64BitOperatingSystem)
                 {
                     return "x64";
@@ -301,7 +297,6 @@ namespace Libra.Agent.Models
         {
             try
             {
-                // 使用PowerShell获取物理内存
                 var psi = new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
@@ -318,7 +313,7 @@ namespace Libra.Agent.Models
                         string result = reader.ReadToEnd().Trim();
                         if (long.TryParse(result, out long totalMemory))
                         {
-                            return totalMemory / 1024f / 1024f / 1024f; // 转换为GB
+                            return totalMemory / 1024f / 1024f / 1024f;
                         }
                         return 0;
                     }
@@ -336,7 +331,6 @@ namespace Libra.Agent.Models
 
             try
             {
-                // 使用PowerShell获取GPU信息
                 var psi = new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
@@ -353,7 +347,6 @@ namespace Libra.Agent.Models
                         string result = reader.ReadToEnd().Trim();
                         if (!string.IsNullOrEmpty(result))
                         {
-                            // PowerShell可能返回多行，每行一个GPU
                             string[] gpus = result.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
                             foreach (var gpu in gpus)
                             {
@@ -412,7 +405,6 @@ namespace Libra.Agent.Models
                     { "Xen", "Xen" }
                 };
 
-                // 使用PowerShell获取BIOS信息
                 var psi = new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
@@ -440,7 +432,6 @@ namespace Libra.Agent.Models
                     }
                 }
 
-                // 使用PowerShell获取系统信息
                 psi = new ProcessStartInfo
                 {
                     FileName = "powershell.exe",
@@ -499,18 +490,18 @@ namespace Libra.Agent.Models
             {
                 case ProcessPriorityClass.Idle:
                 case ProcessPriorityClass.BelowNormal:
-                    return 0; // 低
+                    return 0;
 
                 case ProcessPriorityClass.Normal:
-                    return 1; // 中
+                    return 1;
 
                 case ProcessPriorityClass.AboveNormal:
                 case ProcessPriorityClass.High:
                 case ProcessPriorityClass.RealTime:
-                    return 2; // 高
+                    return 2;
 
                 default:
-                    return 1; // 中
+                    return 1;
             }
         }
 
@@ -523,7 +514,6 @@ namespace Libra.Agent.Models
                 public int Y;
                 public POINT(int x, int y) { X = x; Y = y; }
 
-                // ✅ 增加容差比较：允许1-2像素的微小抖动
                 public bool IsSame(POINT other, int tolerance = 2) =>
                     Math.Abs(X - other.X) <= tolerance && Math.Abs(Y - other.Y) <= tolerance;
             }
@@ -538,10 +528,9 @@ namespace Libra.Agent.Models
             private static bool _isIdle;
             private static Timer _checkTimer;
 
-            // ✅ 核心改进：用计数器代替时间判断
-            private static int _unchangedCount;          // 连续未变化次数
-            private static readonly int _idleThreshold = 4;  // 连续4次不变 = 挂机（2s×4=8秒）
-            private static readonly int _checkIntervalMs = 2000; // 检测间隔2秒
+            private static int _unchangedCount;
+            private static readonly int _idleThreshold = 4;
+            private static readonly int _checkIntervalMs = 2000;
 
             private static readonly object _lock = new object();
 

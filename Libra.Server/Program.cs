@@ -46,7 +46,6 @@ namespace Libra.Server
 
             TotpConfigManager.Initialize();
 
-            // 初始化 Virgo 服务器
             Runtimes.Initialize(8888);
 
             var app = builder.Build();

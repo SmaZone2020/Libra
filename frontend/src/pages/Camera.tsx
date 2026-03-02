@@ -37,12 +37,11 @@ function Camera() {
   const fpsCountRef = useRef(0);
   const fpsTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ── 获取代理列表 ──────────────────────────────────────────────
   const fetchAgents = useCallback(async () => {
     try {
       const res = await agentApi.getOnlineAgentsWithType(baseUrl, token);
       if (res.code === 200) setAgents(res.data.agents);
-    } catch { /* 静默忽略 */ }
+    } catch {  }
   }, [baseUrl, token]);
 
   useEffect(() => {
@@ -51,7 +50,6 @@ function Camera() {
     return () => clearInterval(id);
   }, [fetchAgents]);
 
-  // ── 切换代理时拉取摄像头列表 ──────────────────────────────────
   useEffect(() => {
     if (!selectedAgent) { setCameras([]); setCameraIndex(0); return; }
     agentApi.getOnlineAgents(baseUrl, token).then(res => {
@@ -64,7 +62,6 @@ function Camera() {
     }).catch(() => {});
   }, [selectedAgent, baseUrl, token]);
 
-  // ── 绘制帧到 canvas ───────────────────────────────────────────
   const applyFrame = useCallback(async (frame: ScreenFrame) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -79,12 +76,11 @@ function Camera() {
         }
         ctx.drawImage(img, 0, 0);
       }
-    } catch { /* 单帧渲染失败不影响后续帧 */ }
+    } catch { }
     fpsCountRef.current++;
     setFrameCount(c => c + 1);
   }, []);
 
-  // ── 启动流 ────────────────────────────────────────────────────
   const startStreamInternal = useCallback((agentId: string, camIdx: number, targetFps: number) => {
     setError('');
     setStatus('connecting');
@@ -125,13 +121,11 @@ function Camera() {
     setRealFps(0);
   }, []);
 
-  // 页面卸载时自动停流
   useEffect(() => () => {
     stopRef.current?.();
     if (fpsTimerRef.current) clearInterval(fpsTimerRef.current);
   }, []);
 
-  // ── 状态指示 ──────────────────────────────────────────────────
   const dotClass =
     status === 'streaming'  ? 'bg-green-500 animate-pulse' :
     status === 'connecting' ? 'bg-yellow-500 animate-pulse' :
@@ -151,7 +145,6 @@ function Camera() {
         <Card className="p-6 mb-6">
           <div className="space-y-4">
 
-            {/* 代理选择 */}
             <div>
               <Label className="block text-sm font-medium mb-1">选择代理</Label>
               <Select
@@ -168,7 +161,6 @@ function Camera() {
               </Select>
             </div>
 
-            {/* 摄像头选择 */}
             {cameras.length > 0 && (
               <div>
                 <Label className="block text-sm font-medium mb-1">选择摄像头</Label>

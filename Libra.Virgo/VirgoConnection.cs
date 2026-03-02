@@ -41,7 +41,6 @@ public class VirgoConnection
 
                     try
                     {
-                        // 清理JSON字符串，移除可能的空字节和其他无效字符
                         json = json.Trim();
                         json = new string(json.Where(c => c >= 32 || c == '\n' || c == '\r' || c == '\t').ToArray());
                         
@@ -59,8 +58,6 @@ public class VirgoConnection
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"解析消息失败: {ex.Message}, {ex.StackTrace}");
-                        Console.WriteLine($"原始消息: {json}");
                     }
                 }
             }
@@ -88,9 +85,6 @@ public class VirgoConnection
 
         byte[] length = BitConverter.GetBytes(payload.Length);
 
-        Console.WriteLine($"发送消息: {json} , {length}");
-
-
         if (BitConverter.IsLittleEndian)
             Array.Reverse(length);
 
@@ -101,7 +95,6 @@ public class VirgoConnection
         }
         catch (ObjectDisposedException)
         {
-            Console.WriteLine("连接已关闭");
         }
     }
 

@@ -11,8 +11,6 @@ namespace Libra.Agent.Helper
 {
     public static class MonitorHelper
     {
-        #region Win32
-
         [DllImport("gdi32.dll")]
         private static extern bool BitBlt(
             IntPtr hdcDest,
@@ -39,8 +37,6 @@ namespace Libra.Agent.Helper
 
         public const int SM_CXSCREEN = 0;
         public const int SM_CYSCREEN = 1;
-
-        #endregion
 
         public static byte[]? CaptureCameraFrame(
             int cameraIndex = 0,

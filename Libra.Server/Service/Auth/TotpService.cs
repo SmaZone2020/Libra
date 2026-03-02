@@ -10,18 +10,12 @@ namespace Libra.Server.Service.Auth
         private const int TimeStepSeconds = 30;
         private const int AllowedTimeDrift = 1;
 
-        /// <summary>
-        /// 生成新的 2FA 密钥
-        /// </summary>
         public static string GenerateSecretKey()
         {
             var key = KeyGeneration.GenerateRandomKey(20);
             return Base32Encoding.ToString(key).TrimEnd('=');
         }
 
-        /// <summary>
-        /// 生成 otpauth:// 二维码 URL
-        /// </summary>
         public static string GenerateQrCodeUrl(string secretKey, string accountName, string issuer)
         {
             var encodedIssuer = Uri.EscapeDataString(issuer);
@@ -31,9 +25,6 @@ namespace Libra.Server.Service.Auth
                    $"?secret={secretKey}&issuer={encodedIssuer}&algorithm=SHA1&digits={CodeDigits}&period={TimeStepSeconds}";
         }
 
-        /// <summary>
-        /// 验证用户输入的 6 位验证码
-        /// </summary>
         public static bool VerifyCode(string secretKey, string code)
         {
             if (string.IsNullOrWhiteSpace(secretKey) || string.IsNullOrWhiteSpace(code) || code.Length != 6)
@@ -57,13 +48,10 @@ namespace Libra.Server.Service.Auth
             }
             catch
             {
-                return false; // 安全失败
+                return false;
             }
         }
 
-        /// <summary>
-        /// 【调试用】获取当前应生成的验证码
-        /// </summary>
         public static string GetCurrentCodeForTesting(string secretKey)
         {
             var keyBytes = Base32Encoding.ToBytes(secretKey);
@@ -72,9 +60,6 @@ namespace Libra.Server.Service.Auth
             return totp.ComputeTotp();
         }
 
-        /// <summary>
-        /// 带自定义时间的验证码生成（测试用）
-        /// </summary>
         public static string GetCurrentCodeAtTime(string secretKey, DateTimeOffset customTime)
         {
             var keyBytes = Base32Encoding.ToBytes(secretKey);

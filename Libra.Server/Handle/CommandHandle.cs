@@ -14,8 +14,6 @@ namespace Libra.Server.Handle
         {
             if (pack == null) return;
 
-            //Console.WriteLine($"收到命令结果：{JsonConvert.SerializeObject(pack)}");
-
             if (pack is Newtonsoft.Json.Linq.JObject jObject)
             {
                 Packet = jObject.ToObject<CommandResult>();
@@ -26,16 +24,14 @@ namespace Libra.Server.Handle
                 {
                     Packet = (CommandResult)pack;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Console.WriteLine($"类型转换失败: {ex.Message}");
                     return;
                 }
             }
 
             if (Packet == null) return;
 
-            // 摄像头流帧：推送给 SSE 订阅者
             if (CameraStreamManager.IsActiveStream(Packet.TaskId))
             {
                 try
@@ -50,14 +46,12 @@ namespace Libra.Server.Handle
                             CameraStreamManager.TryPushFrame(Packet.TaskId, frame);
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Console.WriteLine($"解析摄像头流帧失败: {ex.Message}");
                 }
                 return;
             }
 
-            // 差异屏幕流帧：不完成一次性任务，直接推送给 SSE 订阅者
             if (ScreenStreamManager.IsActiveStream(Packet.TaskId))
             {
                 try
@@ -72,14 +66,12 @@ namespace Libra.Server.Handle
                             ScreenStreamManager.TryPushFrame(Packet.TaskId, frame);
                     }
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Console.WriteLine($"解析屏幕流帧失败: {ex.Message}");
                 }
                 return;
             }
 
-            // 文件下载流：推送块数据给下载 channel
             if (FileDownloadManager.IsActive(Packet.TaskId))
             {
                 var b64 = Packet.Result?.ToString() ?? "";

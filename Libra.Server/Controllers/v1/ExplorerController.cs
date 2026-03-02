@@ -69,13 +69,10 @@ namespace Libra.Server.Controllers.v1
                     task.Result = Encoding.UTF8.GetString(Convert.FromBase64String(task.Result.ToString()));
 
 
-                    Console.WriteLine($"轮询结果第{i}次");
-
                     await Task.Delay(500);
                 }
 
                 TaskList.ExplorerTasks.Remove(tid);
-                Console.WriteLine(task.Result.ToString().Length);
                 return new()
                 {
                     Code = LibraStatusCode.Success,
@@ -144,14 +141,10 @@ namespace Libra.Server.Controllers.v1
 
                     task.Result = Encoding.UTF8.GetString(Convert.FromBase64String(task.Result.ToString()));
 
-
-                    Console.WriteLine($"轮询结果第{i}次");
-
                     await Task.Delay(500);
                 }
 
                 TaskList.ExplorerTasks.Remove(tid);
-                Console.WriteLine(task.Result.ToString().Length);
                 return new()
                 {
                     Code = LibraStatusCode.Success,
@@ -223,14 +216,10 @@ namespace Libra.Server.Controllers.v1
 
                     task.Result = Encoding.UTF8.GetString(Convert.FromBase64String(task.Result.ToString()));
 
-
-                    Console.WriteLine($"轮询结果第{i}次");
-
                     await Task.Delay(500);
                 }
 
                 TaskList.ExplorerTasks.Remove(tid);
-                Console.WriteLine(task.Result.ToString().Length);
                 return new()
                 {
                     Code = LibraStatusCode.Success,

@@ -7,18 +7,13 @@ namespace Libra.Server.Service.Auth
 {
     public static class JwtService
     {
-        // 用于签名JWT的密钥，实际生产环境中应该从安全的配置中获取
         private static readonly string _secretKey = GenerateSecureKey();
         private static readonly string _issuer = "Libra.Server";
         private static readonly string _audience = "Libra.Client";
         private static readonly int _expirationDays = 7;
 
-        /// <summary>
-        /// 生成安全的密钥
-        /// </summary>
         private static string GenerateSecureKey()
         {
-            // 使用32字节的随机密钥
             var key = new byte[32];
             using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
             {
@@ -27,9 +22,6 @@ namespace Libra.Server.Service.Auth
             return Convert.ToBase64String(key);
         }
 
-        /// <summary>
-        /// 生成JWT令牌
-        /// </summary>
         public static string GenerateToken()
         {
             var claims = new[]
@@ -53,9 +45,6 @@ namespace Libra.Server.Service.Auth
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        /// <summary>
-        /// 验证JWT令牌
-        /// </summary>
         public static bool ValidateToken(string token)
         {
             try
@@ -84,9 +73,6 @@ namespace Libra.Server.Service.Auth
             }
         }
 
-        /// <summary>
-        /// 获取令牌过期时间
-        /// </summary>
         public static DateTime? GetTokenExpiration(string token)
         {
             try

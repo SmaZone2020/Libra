@@ -11,11 +11,6 @@ namespace Libra.Agent.Handle
     {
         public static async Task Handle(string dataJson, VirgoMessageType type)
         {
-            //D //D Console.WriteLine($"收到消息类型: {type}");
-            
-            //D //D Console.WriteLine($"数据长度: {dataJson.Length}");
-            //D //D Console.WriteLine($"原始JSON: {dataJson}");
-
             switch (type)
             {
                 case VirgoMessageType.Message:

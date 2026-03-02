@@ -33,7 +33,6 @@ namespace Libra.Agent.Helper
 
         public static void Start(int cameraIndex, Guid streamId, int targetFps = 10)
         {
-            // Stop existing stream for this camera
             if (_streams.TryRemove(cameraIndex, out var old))
                 old.DisposeAsync().AsTask().GetAwaiter().GetResult();
 
@@ -44,7 +43,6 @@ namespace Libra.Agent.Helper
             };
             _streams[cameraIndex] = stream;
 
-            // Fire and forget the async open
             _ = StartAsync(stream, targetFps);
         }
 
@@ -55,14 +53,12 @@ namespace Libra.Agent.Helper
                 var descriptor = CameraHelper.GetDescriptor(stream.CameraIndex);
                 if (descriptor == null)
                 {
-                    //D Console.WriteLine($"CameraStreamer[{stream.CameraIndex}]: device not found");
                     return;
                 }
 
                 var chars = CameraHelper.ChooseCharacteristics(descriptor, targetFps);
                 if (chars == null)
                 {
-                    //D Console.WriteLine($"CameraStreamer[{stream.CameraIndex}]: no suitable format");
                     return;
                 }
 
@@ -75,9 +71,8 @@ namespace Libra.Agent.Helper
 
                 await stream.Device.StartAsync();
             }
-            catch (Exception ex)
+            catch
             {
-                //D Console.WriteLine($"CameraStreamer[{stream.CameraIndex}] start error: {ex.Message}");
             }
         }
 
@@ -107,9 +102,8 @@ namespace Libra.Agent.Helper
                     EndTime = DateTime.Now
                 });
             }
-            catch (Exception ex)
+            catch
             {
-                //D Console.WriteLine($"CameraStreamer[{stream.CameraIndex}] frame error: {ex.Message}");
             }
         }
 

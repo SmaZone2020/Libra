@@ -9,16 +9,11 @@ using System.Threading.Tasks;
 namespace Libra.Server.Service.Agent
 {
     /// <summary>
-    /// 管理 Agent 摄像头流的 SSE 订阅。
-    /// 以 (agentId, cameraIndex) 为 key，不同摄像头互相独立。
-    /// 帧使用 ScreenFrame(IsFull=true) 承载 base64 JPEG。
+    /// 管理摄像头流的 SSE 订阅，按 (agentId, cameraIndex) 隔离
     /// </summary>
     public static class CameraStreamManager
     {
-        // (agentId, cameraIndex) → streamId
         private static readonly ConcurrentDictionary<(Guid, int), Guid> _agentStreams = new();
-
-        // streamId → 流状态
         private static readonly ConcurrentDictionary<Guid, StreamState> _streams = new();
 
         private sealed class StreamState
@@ -52,7 +47,7 @@ namespace Libra.Server.Service.Agent
         }
 
         /// <summary>
-        /// SSE 端点订阅。首个订阅者向 Agent 发送 StartCameraStream（含 cameraIndex 和 fps）。
+        /// 订阅摄像头流，首个订阅者触发 Agent 推流
         /// </summary>
         public static async Task<(Guid StreamId, Channel<ScreenFrame> Channel)> SubscribeAsync(
             Guid agentId, int cameraIndex, int fps = 10)
@@ -81,7 +76,7 @@ namespace Libra.Server.Service.Agent
         }
 
         /// <summary>
-        /// SSE 连接断开时取消订阅；最后一个订阅者离开则通知 Agent 停止。
+        /// 取消订阅，最后一个离开时通知 Agent 停止
         /// </summary>
         public static async Task UnsubscribeAsync(
             Guid agentId, int cameraIndex, Channel<ScreenFrame> channel)
@@ -105,7 +100,7 @@ namespace Libra.Server.Service.Agent
             }
         }
 
-        /// <summary>将来自 Agent 的帧推送给所有订阅者</summary>
+        /// <summary>推送帧给所有订阅者</summary>
         public static bool TryPushFrame(Guid streamId, ScreenFrame frame)
         {
             if (_streams.TryGetValue(streamId, out var state))

@@ -125,9 +125,9 @@ namespace Libra.Server.Controllers.v1
                 Directory.CreateDirectory(Path.Combine(buildPath, guid));
                 System.IO.File.Copy(filePath, outPath);
 
-                if (BinaryPatcher.ReplaceString(outPath, "{IP.IP.IP.IP}", body.Host)) Console.WriteLine("IP替换成功");
-                if (BinaryPatcher.ReplaceInt32(outPath, 20230602, body.Port)) Console.WriteLine("端口替换成功");
-                if (BinaryPatcher.ReplaceString(outPath, "{AuthToken}", body.Token)) Console.WriteLine("Token替换成功");
+                BinaryPatcher.ReplaceString(outPath, "{IP.IP.IP.IP}", body.Host);
+                BinaryPatcher.ReplaceInt32(outPath, 20230602, body.Port);
+                BinaryPatcher.ReplaceString(outPath, "{AuthToken}", body.Token);
 
                 return new()
                 {

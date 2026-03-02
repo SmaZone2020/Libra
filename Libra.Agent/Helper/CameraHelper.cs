@@ -14,8 +14,6 @@ namespace Libra.Agent.Helper
         private static readonly ImageCodecInfo _jpegCodec =
             Array.Find(ImageCodecInfo.GetImageDecoders(), c => c.FormatID == ImageFormat.Jpeg.Guid)!;
 
-        // ── Public API ───────────────────────────────────────────────────────────
-
         public static string[] GetCameraNames()
         {
             try
@@ -24,9 +22,8 @@ namespace Libra.Agent.Helper
                     .Select(d => d.Name)
                     .ToArray();
             }
-            catch (Exception ex)
+            catch
             {
-                //D Console.WriteLine($"CameraHelper.GetCameraNames error: {ex.Message}");
                 return [];
             }
         }
@@ -54,14 +51,13 @@ namespace Libra.Agent.Helper
 
             if (chars.Length == 0) return null;
 
-            // Prefer JPEG/MJPEG to avoid transcoding, then pick closest FPS
+            // Prefer JPEG/MJPEG to skip transcoding
             var jpeg = chars
                 .Where(c => c.PixelFormat == PixelFormats.JPEG)
                 .OrderBy(c => Math.Abs(c.FramesPerSecond - preferredFps))
                 .FirstOrDefault();
             if (jpeg != null) return jpeg;
 
-            // Fallback: any format, prefer reasonable resolution, closest FPS
             return chars
                 .OrderBy(c => Math.Abs(c.FramesPerSecond - preferredFps))
                 .ThenByDescending(c => c.Width * c.Height)
@@ -83,19 +79,15 @@ namespace Libra.Agent.Helper
 
                 return ToJpeg(imageData, jpegQuality);
             }
-            catch (Exception ex)
+            catch
             {
-                //D Console.WriteLine($"CameraHelper.CaptureFrame error: {ex.Message}");
                 return null;
             }
         }
 
-        // ── JPEG encoding ────────────────────────────────────────────────────────
-
         public static byte[] ToJpeg(byte[] imageData, long quality)
         {
-            // FlashCap returns DIB (BMP) data by default after transcoding
-            // Try to load as image and re-encode as JPEG
+            // FlashCap returns DIB data, re-encode as JPEG
             using var ms = new MemoryStream(imageData);
             using var bmp = new Bitmap(ms);
             using var outMs = new MemoryStream();
@@ -105,7 +97,6 @@ namespace Libra.Agent.Helper
             return outMs.ToArray();
         }
 
-        // No CloseCamera/CloseAll needed — FlashCap manages device lifetime internally
         public static void CloseCamera(int cameraIndex) { }
         public static void CloseAll() { }
     }

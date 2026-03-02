@@ -31,12 +31,9 @@ namespace Libra.Agent.Helper
                 {
                     SetRegistryStartup(destPath);
                 }
-
-                //D Console.WriteLine("Agent已成功安装并设置为开机自启动.");
             }
-            catch (Exception ex)
+            catch
             {
-                //D Console.WriteLine($"安装失败: {ex.Message}");
             }
         }
 
@@ -63,9 +60,8 @@ namespace Libra.Agent.Helper
                     process.WaitForExit();
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                //D Console.WriteLine($"执行命令失败: {ex.Message}");
             }
         }
 
@@ -80,25 +76,17 @@ namespace Libra.Agent.Helper
                     if (key != null)
                     {
                         key.SetValue("OfficeHost", exePath);
-                        //D Console.WriteLine("注册表已成功设置自启动.");
-                    }
-                    else
-                    {
-                        //D Console.WriteLine("无法打开注册表键值.");
                     }
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                //D Console.WriteLine($"设置注册表自启动失败: {ex.Message}");
             }
         }
         private static bool IsRunAsAdministrator()
         {
             WindowsIdentity identity = WindowsIdentity.GetCurrent();
             WindowsPrincipal principal = new WindowsPrincipal(identity);
-
-            // 判断当前用户是否是管理员
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
         }
     }
