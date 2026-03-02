@@ -86,6 +86,15 @@ dotnet publish Libra.Agent -c Release -r win-x64
 - 1.Libra.Agent在进行AOT发布时，会对FlashCap进行代码裁剪，导致摄像头监控不可用。
 - 解决方法：在发布时不进行裁剪代码，但会导致生成的文件体积增加
 
+## 使用截图
+![1](doc/image/1.png)
+![2](doc/image/2.png)
+![3](doc/image/3.png)
+![4](doc/image/4.png)
+![5](doc/image/5.png)
+![6](doc/image/6.png)
+![7](doc/image/7.png)
+
 ## 免责声明
 
 本项目仅供安全研究、教学演示和授权测试使用。使用者必须遵守所在地区的法律法规。
@@ -109,5 +118,9 @@ dotnet publish Libra.Agent -c Release -r win-x64
 
 本项目采用 [GPL-3.0](LICENSE) 许可证。
 
+
+## 捐赠
+- 如果喜欢这个项目，你可以选择请我喝一杯咖啡，以支持我继续开发。
+![qrcode](doc/image/like.png)
 
 - 以茉莉之名，向天秤座示爱，愿你勿忘我。春江月。
