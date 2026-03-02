@@ -19,7 +19,7 @@ if(!VirtualCheck.HasPhysicalDisplay() ||
 
 try
 {
-    string serverIp = "116.62.22.115";//116.62.22.115
+    string serverIp = "literal:127.0.0.1";//literal:127.0.0.1
     int serverPort = 8888;
     string token = "{AuthToken}";
 
