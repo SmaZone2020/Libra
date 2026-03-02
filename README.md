@@ -40,7 +40,7 @@ Libra.sln
 ### 1. 克隆项目
 
 ```bash
-git clone [<repo-url>](https://github.com/SmaZone2020/Libra.git)
+git clone https://github.com/SmaZone2020/Libra.git
 cd Libra
 ```
 
