@@ -42,7 +42,7 @@ Libra.sln
 ### 1. Clone the Project
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/SmaZone2020/Libra.git
 cd Libra
 ```
 
