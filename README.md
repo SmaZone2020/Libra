@@ -1,58 +1,60 @@
 # Libra
 
-一个基于 .NET 10 的远程管理与监控框架，采用 C/S 架构，支持实时屏幕监控、摄像头流、文件管理、远程Shell等功能。
+- [中文文档](doc/README.md)
 
-## 项目结构
+A remote management and monitoring framework based on .NET 10, adopting C/S architecture, supporting real-time screen monitoring, camera streaming, file management, remote Shell and other functions.
+
+## Project Structure
 
 ```
 Libra.sln
-├── Libra.Server        # ASP.NET Core 服务端
-├── Libra.Agent         # Windows 客户端
-├── Libra.Virgo         # 共享传输协议库
-├── Libra.AppHost       # .NET Aspire 编排
-└── frontend/           # React + TypeScript 前端
+├── Libra.Server        # ASP.NET Core Server
+├── Libra.Agent         # Windows Client
+├── Libra.Virgo         # Shared Transport Protocol Library
+├── Libra.AppHost       # .NET Aspire Orchestration
+└── frontend/           # React + TypeScript Frontend
 ```
 
-## 技术栈
+## Tech Stack
 
-- **Server**: ASP.NET Core 10, JWT 认证, OpenTelemetry, SSE 推流
+- **Server**: ASP.NET Core 10, JWT Authentication, OpenTelemetry, SSE Streaming
 - **Agent**: .NET 10 AOT
-- **Transport**: TCP + 4字节大端长度前缀 + JSON, 自定义 Virgo 协议
+- **Transport**: TCP + 4-byte big-endian length prefix + JSON, custom Virgo protocol
 - **Frontend**: React, TypeScript, HeroUI
 
-## 功能
+## Features
 
-- 实时屏幕监控（差异帧压缩，SSE 推流）
-- 摄像头实时流（多摄像头，可调 FPS）
-- 远程 Shell 执行
-- 文件浏览与下载
-- 进程管理
-- TOTP 双因素认证
+- Real-time screen monitoring (differential frame compression, SSE streaming)
+- Real-time camera streaming (multiple cameras, adjustable FPS)
+- Remote Shell execution
+- File browsing and downloading
+- Process management
+- TOTP two-factor authentication
 
-## 快速启动
+## Quick Start
 
-### 环境要求
+### Environment Requirements
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [Node.js](https://nodejs.org/) (前端)
-- Windows（Agent 仅支持 Windows）
+- [Node.js](https://nodejs.org/) (for frontend)
+- Windows (Agent only supports Windows)
 
-### 1. 克隆项目
+### 1. Clone the Project
 
 ```bash
-git clone https://github.com/SmaZone2020/Libra.git
+git clone <repo-url>
 cd Libra
 ```
 
-### 2. 启动服务端
+### 2. Start the Server
 
 ```bash
 dotnet run --project Libra.Server
 ```
 
-服务端默认在 `8888` 端口监听 Agent TCP 连接，HTTP API 在默认端口提供服务。
+The server listens for Agent TCP connections on port `8888` by default, and the HTTP API is served on the default port.
 
-### 3. 启动前端
+### 3. Start the Frontend
 
 ```bash
 cd frontend
@@ -60,33 +62,33 @@ npm install
 npm run dev
 ```
 
-### 4. 启动 Agent（Windows）
+### 4. Start the Agent (Windows)
 
 ```bash
 dotnet run --project Libra.Agent
 ```
 
-Agent 启动后会自动连接服务端并注册。
+The Agent will automatically connect to the server and register after startup.
 
-### 使用 Aspire 编排（可选）
+### Using Aspire Orchestration (Optional)
 
 ```bash
 dotnet run --project Libra.AppHost
 ```
 
-一键启动所有服务。
+One-click start of all services.
 
-### AOT 发布 Agent
+### AOT Publish Agent
 
 ```bash
 dotnet publish Libra.Agent -c Release -r win-x64
 ```
 
-### 已知Bug：
-- 1.Libra.Agent在进行AOT发布时，会对FlashCap进行代码裁剪，导致摄像头监控不可用。
-- 解决方法：在发布时不进行裁剪代码，但会导致生成的文件体积增加
+### Known Bugs:
+- 1. When publishing Libra.Agent with AOT, FlashCap will be code trimmed, causing camera monitoring to be unavailable.
+- Solution: Do not trim code during publishing, but this will increase the generated file size
 
-## 使用截图
+## Screenshots
 ![1](doc/image/1.png)
 ![2](doc/image/2.png)
 ![3](doc/image/3.png)
@@ -95,32 +97,32 @@ dotnet publish Libra.Agent -c Release -r win-x64
 ![6](doc/image/6.png)
 ![7](doc/image/7.png)
 
-## 免责声明
+## Disclaimer
 
-本项目仅供安全研究、教学演示和授权测试使用。使用者必须遵守所在地区的法律法规。
+This project is for security research, teaching demonstrations, and authorized testing only. Users must comply with the laws and regulations of their respective regions.
 
-**在使用本项目前，请确认：**
+**Before using this project, please confirm:**
 
-1. 你已获得目标系统所有者的明确书面授权
-2. 你的使用场景符合当地法律法规
-3. 你不会将本项目用于任何未经授权的访问、监控或攻击行为
+1. You have obtained explicit written authorization from the owner of the target system
+2. Your usage scenario complies with local laws and regulations
+3. You will not use this project for any unauthorized access, monitoring, or attack behavior
 
-**作者声明：**
+**Author's Statement:**
 
-- 本项目按"原样"提供，不提供任何形式的明示或暗示担保
-- 作者不对因使用或滥用本项目造成的任何直接或间接损失承担责任
-- 任何因违反法律法规使用本项目所产生的后果，由使用者自行承担
-- 本项目不鼓励、不支持任何非法活动
+- This project is provided "as is" without any express or implied warranties
+- The author is not responsible for any direct or indirect losses caused by the use or abuse of this project
+- Any consequences arising from the use of this project in violation of laws and regulations shall be borne by the user
+- This project does not encourage or support any illegal activities
 
-未经授权对计算机系统进行访问、监控或控制是违法行为，可能导致严重的刑事和民事责任。
+Unauthorized access, monitoring, or control of computer systems is illegal and may result in serious criminal and civil liability.
 
-## 协议
+## License
 
-本项目采用 [GPL-3.0](LICENSE) 许可证。
+This project is licensed under the [GPL-3.0](LICENSE) license.
 
 
-## 捐赠
-- 如果喜欢这个项目，你可以选择请我喝一杯咖啡，以支持我继续开发。
+## Donation
+- If you like this project, you can choose to buy me a coffee to support my continued development.
 ![qrcode](doc/image/like.png)
 
-- 以茉莉之名，向天秤座示爱，愿你勿忘我。春江月。
+- In the name of Jasmine, I profess my love to Libra, may you not forget me. Spring River Moon.
