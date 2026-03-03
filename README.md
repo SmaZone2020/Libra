@@ -1,6 +1,6 @@
 # Libra
 
-- [中文文档](doc/README.md)
+- [中文文档](doc/readme.md)
 
 A remote management and monitoring framework based on .NET 10, adopting C/S architecture, supporting real-time screen monitoring, camera streaming, file management, remote Shell and other functions.
 
