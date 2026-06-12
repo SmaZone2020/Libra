@@ -1,6 +1,6 @@
 # Libra
 
-## [Libra-Next已发布](https://github.com/SmaZone2020/Libra-Nextgen)
+### 该版本可能不再更新，可以选择架构更完善、功能更强大的 [Libra-Next](https://github.com/SmaZone2020/Libra-Nextgen)
 
 - [中文文档](doc/readme.md)
 
